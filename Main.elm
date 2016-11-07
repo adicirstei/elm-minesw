@@ -4,36 +4,48 @@ import Html.App
 import Html exposing (..)
 import Html.Events exposing (..)
 import MineSweeper exposing (..)
+import Time exposing (Time, every, second)
 
 
-type Msg gameaction
+type Msg
     = StartBeginner
     | StartIntermediate
     | StartAdvanced
-    | Play gameaction
+    | Tick Time
+    | Game MineSweeper.Msg
 
 
-type AppState game
+type AppState
     = StartScreen
-    | Playing game
+    | Playing MineSweeper.Model
 
 
 main =
-    Html.App.beginnerProgram
-        { model = StartScreen
+    Html.App.program
+        { init = StartScreen ! []
+        , subscriptions = subs
         , view = view
         , update = update
         }
 
 
-view : AppState MineSweeper.Model -> Html (Msg MineSweeper.Msg)
+subs model =
+    case model of
+        StartScreen ->
+            Sub.none
+
+        Playing g ->
+            every second Tick
+
+
+view : AppState -> Html Msg
 view model =
     case model of
         StartScreen ->
             renderStartScreen
 
         Playing game ->
-            MineSweeper.view Play game
+            MineSweeper.view Game game
 
 
 renderStartScreen =
@@ -44,22 +56,30 @@ renderStartScreen =
         ]
 
 
-update : Msg (MineSweeper.Msg) -> AppState MineSweeper.Model -> AppState MineSweeper.Model
+update : Msg -> AppState -> ( AppState, Cmd Msg )
 update msg state =
-    case msg of
-        StartBeginner ->
-            Playing MineSweeper.startBeginner
+    case state of
+        StartScreen ->
+            case msg of
+                StartBeginner ->
+                    Playing MineSweeper.startBeginner ! []
 
-        StartIntermediate ->
-            Playing MineSweeper.startIntermediate
+                StartIntermediate ->
+                    Playing MineSweeper.startIntermediate ! []
 
-        StartAdvanced ->
-            Playing MineSweeper.startAdvanced
+                StartAdvanced ->
+                    Playing MineSweeper.startAdvanced ! []
 
-        Play action ->
-            case state of
-                StartScreen ->
-                    Debug.log "Impossible state" (state)
+                _ ->
+                    state ! []
 
-                Playing game ->
-                    Playing (MineSweeper.update action game)
+        Playing game ->
+            case msg of
+                Tick time ->
+                    Playing (MineSweeper.tick game time) ! []
+
+                Game action ->
+                    Playing (MineSweeper.update action game) ! []
+
+                _ ->
+                    state ! []

@@ -1,9 +1,10 @@
-module MineSweeper exposing (Model, Msg, view, update, startBeginner, startIntermediate, startAdvanced)
+module MineSweeper exposing (Model, Msg, view, update, startBeginner, startIntermediate, startAdvanced, tick)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Dict exposing (Dict)
+import Time exposing (Time)
 
 
 type alias Cell =
@@ -19,6 +20,7 @@ type CellState
 
 type Msg
     = CellClicked Cell
+    | CellFlagged Cell
     | GameLost
 
 
@@ -28,28 +30,31 @@ type alias Model =
     , rows : Int
     , score : Int
     , mines : List Cell
+    , time : Int
     }
 
 
 startBeginner : Model
 startBeginner =
-    Model Dict.empty 10 10 0 [ ( 3, 3 ), ( 7, 2 ) ]
+    Model Dict.empty 10 10 0 [ ( 3, 3 ), ( 7, 2 ) ] 0
 
 
 startIntermediate : Model
 startIntermediate =
-    Model Dict.empty 20 15 0 [ ( 3, 3 ), ( 7, 2 ) ]
+    Model Dict.empty 20 15 0 [ ( 3, 3 ), ( 7, 2 ) ] 0
 
 
 startAdvanced : Model
 startAdvanced =
-    Model Dict.empty 30 20 0 [ ( 3, 3 ), ( 7, 2 ) ]
+    Model Dict.empty 30 20 0 [ ( 3, 3 ), ( 7, 2 ) ] 0
 
 
 view msg model =
     div []
         [ h2 []
-            [ text ("Score: " ++ (toString model.score)) ]
+            [ text ("Mines: " ++ (toString model.score))
+            , text ("Time: " ++ toString model.time)
+            ]
         , div
             [ class "grid"
             , style [ ( "background-color", "white" ) ]
@@ -83,6 +88,23 @@ renderCell msg model row col =
                 ]
                 []
 
+        Visible mines ->
+            div
+                [ style
+                    [ ( "width", "24px" )
+                    , ( "height", "24px" )
+                    , ( "margin", "1px" )
+                    , ( "display", "inline-block" )
+                    , ( "background-color", "lightgray" )
+                    , ( "vertical-align", "top" )
+                    ]
+                ]
+                [ if mines == 0 then
+                    text ""
+                  else
+                    text (toString mines)
+                ]
+
         _ ->
             div
                 [ style
@@ -96,6 +118,22 @@ renderCell msg model row col =
                 []
 
 
+tick model time =
+    if model.grid == Dict.empty then
+        model
+    else
+        { model | time = model.time + 1 }
+
+
+getCellState model cell =
+    Visible 3
+
+
 update : Msg -> Model -> Model
 update msg model =
-    model
+    case msg of
+        CellClicked cell ->
+            { model | grid = Dict.insert cell (getCellState model cell) model.grid }
+
+        _ ->
+            model
