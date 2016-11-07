@@ -33,7 +33,7 @@ view model =
             renderStartScreen
 
         Playing game ->
-            MineSweeper.view game
+            MineSweeper.view Play game
 
 
 renderStartScreen =
