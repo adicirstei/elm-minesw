@@ -7,7 +7,6 @@ import Dict exposing (Dict)
 import Time exposing (Time)
 import String exposing (padLeft)
 import Random
-import Set
 import List.Extras as List
 
 
@@ -42,8 +41,8 @@ type alias GameModel =
 
 type Model
     = Playing GameModel
-    | GameWon
-    | GameLost
+    | GameWon GameModel
+    | GameLost GameModel
 
 
 initDict rows cols =
@@ -71,64 +70,94 @@ startAdvanced =
 view msg model =
     case model of
         Playing gm ->
-            div [ style [ ( "font-family", "monospace" ), ( "font-size", "24px" ) ] ]
-                [ div
-                    [ class "header"
-                    , style [ ( "width", (toString (gm.cols * 31)) ++ "px" ) ]
-                    ]
-                    [ div
-                        [ style
-                            [ ( "float", "left" )
-                            , ( "color", "red" )
-                            , ( "width", "33.3333%" )
-                            ]
-                        ]
-                        [ text (gm.minesCount |> format) ]
-                    , div
-                        [ style
-                            [ ( "color", "black" )
-                            , ( "background", "yellow" )
-                            , ( "width", "48px" )
-                            , ( "margin", "0 auto" )
-                            ]
-                        , onClick (msg Restart)
-                        ]
-                        [ text ":-)" ]
-                    , div
-                        [ style
-                            [ ( "float", "right" )
-                            , ( "color", "red" )
-                            , ( "width", "33.3333%" )
-                            , ( "text-align", "right" )
-                            ]
-                        ]
-                        [ text (format gm.time) ]
-                    ]
+            drawBoard msg gm
+
+        GameWon gm ->
+            div []
+                [ drawBoard msg gm
                 , div
-                    [ class "grid"
-                    , style
-                        [ ( "background-color", "white" )
-                        , ( "font-size", "16px" )
-                        , ( "clear", "both" )
+                    [ style
+                        [ ( "position", "absolute" )
+                        , ( "top", "100px" )
+                        , ( "left", "50px" )
+                        , ( "font-size", "64px" )
+                        , ( "padding", "24px" )
+                        , ( "background", "yellow" )
                         ]
                     ]
-                    (renderGrid msg gm)
+                    [ text "Victory!" ]
                 ]
 
-        GameWon ->
-            text "Victory!"
+        GameLost gm ->
+            div []
+                [ drawBoard msg gm
+                , div
+                    [ style
+                        [ ( "position", "absolute" )
+                        , ( "top", "100px" )
+                        , ( "left", "50px" )
+                        , ( "font-size", "64px" )
+                        , ( "padding", "24px" )
+                        , ( "background", "yellow" )
+                        ]
+                    ]
+                    [ text "You lost!" ]
+                ]
 
-        GameLost ->
-            text "You lost!"
+
+drawBoard msg gm =
+    div [ style [ ( "font-family", "monospace" ), ( "font-size", "24px" ) ] ]
+        [ div
+            [ class "header"
+            , style [ ( "width", (toString (gm.cols * 31)) ++ "px" ) ]
+            ]
+            [ div
+                [ style
+                    [ ( "float", "left" )
+                    , ( "color", "red" )
+                    , ( "width", "33.3333%" )
+                    ]
+                ]
+                [ text (gm.minesCount |> format) ]
+            , div
+                [ style
+                    [ ( "color", "black" )
+                    , ( "background", "yellow" )
+                    , ( "width", "48px" )
+                    , ( "margin", "0 auto" )
+                    ]
+                , onClick (msg Restart)
+                ]
+                [ text ":-)" ]
+            , div
+                [ style
+                    [ ( "float", "right" )
+                    , ( "color", "red" )
+                    , ( "width", "33.3333%" )
+                    , ( "text-align", "right" )
+                    ]
+                ]
+                [ text (format gm.time) ]
+            ]
+        , div
+            [ class "grid"
+            , style
+                [ ( "background-color", "white" )
+                , ( "font-size", "16px" )
+                , ( "clear", "both" )
+                ]
+            ]
+            (renderGrid msg gm)
+        ]
 
 
 renderGrid msg model =
-    ([0..model.rows] |> List.map (renderRow msg model))
+    ([0..model.rows - 1] |> List.map (renderRow msg model))
 
 
 renderRow msg model row =
     div [ style [ ( "height", "28px" ) ] ]
-        ([0..model.cols] |> List.map (renderCell msg model row))
+        ([0..model.cols - 1] |> List.map (renderCell msg model row))
 
 
 renderCell msg model row col =
@@ -310,9 +339,9 @@ wonLostContinue gm =
             Dict.filter (\_ v -> v == Mine) gm.grid
     in
         if Dict.size mines > 0 then
-            GameLost
+            GameLost gm
         else if Dict.size flagsOrHidden == List.length gm.mines then
-            GameWon
+            GameWon gm
         else
             Playing gm
 
@@ -342,5 +371,34 @@ update msg model =
                 _ ->
                     Playing gm
 
-        _ ->
-            model
+        GameLost gm ->
+            case msg of
+                Restart ->
+                    case gm.cols of
+                        8 ->
+                            startBeginner
+
+                        16 ->
+                            startIntermediate
+
+                        _ ->
+                            startAdvanced
+
+                _ ->
+                    GameLost gm
+
+        GameWon gm ->
+            case msg of
+                Restart ->
+                    case gm.cols of
+                        8 ->
+                            startBeginner
+
+                        16 ->
+                            startIntermediate
+
+                        _ ->
+                            startAdvanced
+
+                _ ->
+                    GameWon gm
