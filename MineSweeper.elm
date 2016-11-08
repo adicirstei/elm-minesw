@@ -8,6 +8,7 @@ import Time exposing (Time)
 import String exposing (padLeft)
 import Random
 import Set
+import List.Extras as List
 
 
 type alias Cell =
@@ -17,17 +18,17 @@ type alias Cell =
 type CellState
     = Hidden
     | Visible Int
-    | Empty
+    | Flagged
     | Mine
 
 
 type Msg
     = CellClicked Cell
     | CellFlagged Cell
-    | GameLost
+    | Restart
 
 
-type alias Model =
+type alias GameModel =
     { grid : Dict Cell CellState
     , cols : Int
     , rows : Int
@@ -39,64 +40,86 @@ type alias Model =
     }
 
 
+type Model
+    = Playing GameModel
+    | GameWon
+    | GameLost
+
+
+initDict rows cols =
+    [0..rows - 1]
+        |> List.map (\r -> [0..cols - 1] |> List.map (\c -> ( ( r, c ), Hidden )))
+        |> List.concat
+        |> Dict.fromList
+
+
 startBeginner : Model
 startBeginner =
-    Model Dict.empty 8 8 0 [] 10 0 0
+    Playing (GameModel (initDict 8 8) 8 8 0 [] 10 0 0)
 
 
 startIntermediate : Model
 startIntermediate =
-    Model Dict.empty 16 16 0 [] 50 0 0
+    Playing (GameModel (initDict 16 16) 16 16 0 [] 50 0 0)
 
 
 startAdvanced : Model
 startAdvanced =
-    Model Dict.empty 30 20 0 [] 100 0 0
+    Playing (GameModel (initDict 30 20) 30 20 0 [] 100 0 0)
 
 
 view msg model =
-    div [ style [ ( "font-family", "monospace" ), ( "font-size", "24px" ) ] ]
-        [ div
-            [ class "header"
-            , style [ ( "width", (toString (model.cols * 31)) ++ "px" ) ]
-            ]
-            [ div
-                [ style
-                    [ ( "float", "left" )
-                    , ( "color", "red" )
-                    , ( "width", "33.3333%" )
+    case model of
+        Playing gm ->
+            div [ style [ ( "font-family", "monospace" ), ( "font-size", "24px" ) ] ]
+                [ div
+                    [ class "header"
+                    , style [ ( "width", (toString (gm.cols * 31)) ++ "px" ) ]
                     ]
-                ]
-                [ text (model.minesCount |> format) ]
-            , div
-                [ style
-                    [ ( "color", "black" )
-                    , ( "background", "yellow" )
-                    , ( "width", "48px" )
-                    , ( "margin", "0 auto" )
+                    [ div
+                        [ style
+                            [ ( "float", "left" )
+                            , ( "color", "red" )
+                            , ( "width", "33.3333%" )
+                            ]
+                        ]
+                        [ text (gm.minesCount |> format) ]
+                    , div
+                        [ style
+                            [ ( "color", "black" )
+                            , ( "background", "yellow" )
+                            , ( "width", "48px" )
+                            , ( "margin", "0 auto" )
+                            ]
+                        , onClick (msg Restart)
+                        ]
+                        [ text ":-)" ]
+                    , div
+                        [ style
+                            [ ( "float", "right" )
+                            , ( "color", "red" )
+                            , ( "width", "33.3333%" )
+                            , ( "text-align", "right" )
+                            ]
+                        ]
+                        [ text (format gm.time) ]
                     ]
-                ]
-                [ text ":-)" ]
-            , div
-                [ style
-                    [ ( "float", "right" )
-                    , ( "color", "red" )
-                    , ( "width", "33.3333%" )
-                    , ( "text-align", "right" )
+                , div
+                    [ class "grid"
+                    , style
+                        [ ( "background-color", "white" )
+                        , ( "font-size", "16px" )
+                        , ( "clear", "both" )
+                        ]
                     ]
+                    (renderGrid msg gm)
                 ]
-                [ text (format model.time) ]
-            ]
-        , div
-            [ class "grid"
-            , style
-                [ ( "background-color", "white" )
-                , ( "font-size", "16px" )
-                , ( "clear", "both" )
-                ]
-            ]
-            (renderGrid msg model)
-        ]
+
+        GameWon ->
+            text "Victory!"
+
+        GameLost ->
+            text "You lost!"
 
 
 renderGrid msg model =
@@ -134,7 +157,6 @@ renderCell msg model row col =
                     , ( "background-color", "lightgray" )
                     , ( "vertical-align", "top" )
                     , ( "border", "1px solid lightgray" )
-                    , ( "padding-top", "5px" )
                     , ( "color", color mines )
                     , ( "font-weight", "bold" )
                     , ( "text-align", "center" )
@@ -156,7 +178,6 @@ renderCell msg model row col =
                     , ( "background-color", "red" )
                     , ( "vertical-align", "top" )
                     , ( "border", "1px solid darkred" )
-                    , ( "padding-top", "5px" )
                     , ( "font-weight", "bold" )
                     , ( "text-align", "center" )
                     ]
@@ -209,29 +230,32 @@ color m =
 
 
 tick model time =
-    if model.grid == Dict.empty then
-        { model | startTime = time }
-            |> Debug.log "tick model"
-    else
-        { model | time = model.time + 1 }
+    case model of
+        Playing gm ->
+            if gm.mines == [] then
+                Playing { gm | startTime = time }
+            else
+                Playing { gm | time = gm.time + 1 }
+
+        _ ->
+            model
 
 
-getCellState model cell =
-    if List.member cell model.mines then
+getCellState model ( r, c ) =
+    if List.member ( r, c ) model.mines then
         Mine
     else
-        Visible 8
+        let
+            ns =
+                [ ( r - 1, c - 1 ), ( r - 1, c ), ( r - 1, c + 1 ), ( r, c - 1 ), ( r, c + 1 ), ( r + 1, c - 1 ), ( r + 1, c ), ( r + 1, c + 1 ) ]
+                    |> List.filter (\( r, c ) -> r >= 0 && r < model.rows && c >= 0 && c < model.cols)
 
-
-unique =
-    List.foldl
-        (\x acc ->
-            if List.member x acc then
-                acc
-            else
-                x :: acc
-        )
-        []
+            ms =
+                model.mines
+                    |> List.filter (\m -> List.member m ns)
+                    |> List.length
+        in
+            Visible ms
 
 
 randomMines cell model seed =
@@ -250,7 +274,7 @@ randomMines cell model seed =
                         idxs
                             |> Debug.log "idxs"
                             |> List.filter ((/=) cellIdx)
-                            |> unique
+                            |> List.unique
                             |> List.take model.minesCount
                             |> List.map (\idx -> ( idx // model.cols, idx % model.cols ))
                     )
@@ -276,13 +300,47 @@ updateGrid cell model =
     { model | grid = Dict.insert cell (getCellState model cell) model.grid }
 
 
+wonLostContinue gm =
+    let
+        flagsOrHidden =
+            Dict.filter (\_ v -> v == Flagged || v == Hidden) gm.grid
+                |> Debug.log "flags or hidden"
+
+        mines =
+            Dict.filter (\_ v -> v == Mine) gm.grid
+    in
+        if Dict.size mines > 0 then
+            GameLost
+        else if Dict.size flagsOrHidden == List.length gm.mines then
+            GameWon
+        else
+            Playing gm
+
+
 update : Msg -> Model -> Model
 update msg model =
-    case msg of
-        CellClicked cell ->
-            cell
-                |> initMines model
-                |> updateGrid cell
+    case model of
+        Playing gm ->
+            case msg of
+                CellClicked cell ->
+                    cell
+                        |> initMines gm
+                        |> updateGrid cell
+                        |> wonLostContinue
+
+                Restart ->
+                    case gm.cols of
+                        8 ->
+                            startBeginner
+
+                        16 ->
+                            startIntermediate
+
+                        _ ->
+                            startAdvanced
+
+                _ ->
+                    Playing gm
 
         _ ->
             model
