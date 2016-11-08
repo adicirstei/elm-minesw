@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Dict exposing (Dict)
 import Time exposing (Time)
+import String exposing (padLeft)
 
 
 type alias Cell =
@@ -50,14 +51,45 @@ startAdvanced =
 
 
 view msg model =
-    div []
-        [ h2 []
-            [ text ("Mines: " ++ (toString model.score))
-            , text ("Time: " ++ toString model.time)
+    div [ style [ ( "font-family", "monospace" ), ( "font-size", "24px" ) ] ]
+        [ div
+            [ class "header"
+            , style [ ( "width", (toString (model.cols * 31)) ++ "px" ) ]
+            ]
+            [ div
+                [ style
+                    [ ( "float", "left" )
+                    , ( "color", "red" )
+                    , ( "width", "33.3333%" )
+                    ]
+                ]
+                [ text (List.length model.mines |> format) ]
+            , div
+                [ style
+                    [ ( "color", "black" )
+                    , ( "background", "yellow" )
+                    , ( "width", "48px" )
+                    , ( "margin", "0 auto" )
+                    ]
+                ]
+                [ text ":-)" ]
+            , div
+                [ style
+                    [ ( "float", "right" )
+                    , ( "color", "red" )
+                    , ( "width", "33.3333%" )
+                    , ( "text-align", "right" )
+                    ]
+                ]
+                [ text (format model.time) ]
             ]
         , div
             [ class "grid"
-            , style [ ( "background-color", "white" ) ]
+            , style
+                [ ( "background-color", "white" )
+                , ( "font-size", "16px" )
+                , ( "clear", "both" )
+                ]
             ]
             (renderGrid msg model)
         ]
@@ -97,6 +129,11 @@ renderCell msg model row col =
                     , ( "display", "inline-block" )
                     , ( "background-color", "lightgray" )
                     , ( "vertical-align", "top" )
+                    , ( "border", "1px solid lightgray" )
+                    , ( "padding-top", "5px" )
+                    , ( "color", color mines )
+                    , ( "font-weight", "bold" )
+                    , ( "text-align", "center" )
                     ]
                 ]
                 [ if mines == 0 then
@@ -116,6 +153,37 @@ renderCell msg model row col =
                     ]
                 ]
                 []
+
+
+format =
+    toString >> (padLeft 3 '0')
+
+
+color m =
+    case m of
+        0 ->
+            "lightgray"
+
+        1 ->
+            "blue"
+
+        2 ->
+            "green"
+
+        3 ->
+            "red"
+
+        4 ->
+            "darkblue"
+
+        5 ->
+            "darkred"
+
+        6 ->
+            "teal"
+
+        _ ->
+            "black"
 
 
 tick model time =
