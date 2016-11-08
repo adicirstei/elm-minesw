@@ -6,6 +6,8 @@ import Html.Events exposing (onClick)
 import Dict exposing (Dict)
 import Time exposing (Time)
 import String exposing (padLeft)
+import Random
+import Set
 
 
 type alias Cell =
@@ -31,23 +33,25 @@ type alias Model =
     , rows : Int
     , score : Int
     , mines : List Cell
+    , minesCount : Int
     , time : Int
+    , startTime : Time
     }
 
 
 startBeginner : Model
 startBeginner =
-    Model Dict.empty 10 10 0 [ ( 3, 3 ), ( 7, 2 ) ] 0
+    Model Dict.empty 8 8 0 [] 10 0 0
 
 
 startIntermediate : Model
 startIntermediate =
-    Model Dict.empty 20 15 0 [ ( 3, 3 ), ( 7, 2 ) ] 0
+    Model Dict.empty 16 16 0 [] 50 0 0
 
 
 startAdvanced : Model
 startAdvanced =
-    Model Dict.empty 30 20 0 [ ( 3, 3 ), ( 7, 2 ) ] 0
+    Model Dict.empty 30 20 0 [] 100 0 0
 
 
 view msg model =
@@ -63,7 +67,7 @@ view msg model =
                     , ( "width", "33.3333%" )
                     ]
                 ]
-                [ text (List.length model.mines |> format) ]
+                [ text (model.minesCount |> format) ]
             , div
                 [ style
                     [ ( "color", "black" )
@@ -142,6 +146,24 @@ renderCell msg model row col =
                     text (toString mines)
                 ]
 
+        Mine ->
+            div
+                [ style
+                    [ ( "width", "24px" )
+                    , ( "height", "24px" )
+                    , ( "margin", "1px" )
+                    , ( "display", "inline-block" )
+                    , ( "background-color", "red" )
+                    , ( "vertical-align", "top" )
+                    , ( "border", "1px solid darkred" )
+                    , ( "padding-top", "5px" )
+                    , ( "font-weight", "bold" )
+                    , ( "text-align", "center" )
+                    ]
+                ]
+                [ text "*"
+                ]
+
         _ ->
             div
                 [ style
@@ -188,20 +210,79 @@ color m =
 
 tick model time =
     if model.grid == Dict.empty then
-        model
+        { model | startTime = time }
+            |> Debug.log "tick model"
     else
         { model | time = model.time + 1 }
 
 
 getCellState model cell =
-    Visible 3
+    if List.member cell model.mines then
+        Mine
+    else
+        Visible 8
+
+
+unique =
+    List.foldl
+        (\x acc ->
+            if List.member x acc then
+                acc
+            else
+                x :: acc
+        )
+        []
+
+
+randomMines cell model seed =
+    let
+        ( row, col ) =
+            cell
+
+        cellIdx =
+            (row * model.cols + col)
+                |> Debug.log "cellIdx"
+
+        gen =
+            Random.list (model.rows * model.cols) (Random.int 0 (model.rows * model.cols - 1))
+                |> Random.map
+                    (\idxs ->
+                        idxs
+                            |> Debug.log "idxs"
+                            |> List.filter ((/=) cellIdx)
+                            |> unique
+                            |> List.take model.minesCount
+                            |> List.map (\idx -> ( idx // model.cols, idx % model.cols ))
+                    )
+    in
+        Random.step gen seed |> Debug.log "gen list" |> fst
+
+
+initMines model cell =
+    let
+        seed =
+            Random.initialSeed (floor model.startTime)
+    in
+        case model.mines of
+            [] ->
+                { model | mines = randomMines cell model seed }
+                    |> Debug.log "mines generated"
+
+            _ ->
+                model
+
+
+updateGrid cell model =
+    { model | grid = Dict.insert cell (getCellState model cell) model.grid }
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
         CellClicked cell ->
-            { model | grid = Dict.insert cell (getCellState model cell) model.grid }
+            cell
+                |> initMines model
+                |> updateGrid cell
 
         _ ->
             model
