@@ -45,7 +45,7 @@ type Model
     | GameLost GameModel
 
 
-initDict rows cols =
+initDict cols rows =
     [0..rows - 1]
         |> List.map (\r -> [0..cols - 1] |> List.map (\c -> ( ( r, c ), Hidden )))
         |> List.concat
@@ -270,14 +270,22 @@ tick model time =
             model
 
 
-getCellState model ( r, c ) =
-    if List.member ( r, c ) model.mines then
+getNeighbours model cell =
+    let
+        ( r, c ) =
+            cell
+    in
+        [ ( r - 1, c - 1 ), ( r - 1, c ), ( r - 1, c + 1 ), ( r, c - 1 ), ( r, c + 1 ), ( r + 1, c - 1 ), ( r + 1, c ), ( r + 1, c + 1 ) ]
+            |> List.filter (\( r, c ) -> r >= 0 && r < model.rows && c >= 0 && c < model.cols)
+
+
+getCellState model cell =
+    if List.member cell model.mines then
         Mine
     else
         let
             ns =
-                [ ( r - 1, c - 1 ), ( r - 1, c ), ( r - 1, c + 1 ), ( r, c - 1 ), ( r, c + 1 ), ( r + 1, c - 1 ), ( r + 1, c ), ( r + 1, c + 1 ) ]
-                    |> List.filter (\( r, c ) -> r >= 0 && r < model.rows && c >= 0 && c < model.cols)
+                getNeighbours model cell
 
             ms =
                 model.mines
@@ -326,14 +334,36 @@ initMines model cell =
 
 
 updateGrid cell model =
-    { model | grid = Dict.insert cell (getCellState model cell) model.grid }
+    let
+        cellState =
+            getCellState model cell
+
+        m =
+            model.grid |> Debug.log "the grid"
+    in
+        if cellState == Visible 0 then
+            let
+                ns =
+                    getNeighbours model cell
+                        |> Debug.log "initial neighbours"
+                        |> List.filter
+                            (\c ->
+                                Dict.filter (\k v -> k == c && v == Hidden) model.grid
+                                    |> Debug.log "filtered dict"
+                                    |> Dict.size
+                                    |> ((<) 0)
+                            )
+                        |> Debug.log "filtered neighbours"
+            in
+                List.foldr updateGrid { model | grid = Dict.insert cell cellState model.grid } ns
+        else
+            { model | grid = Dict.insert cell cellState model.grid }
 
 
 wonLostContinue gm =
     let
         flagsOrHidden =
             Dict.filter (\_ v -> v == Flagged || v == Hidden) gm.grid
-                |> Debug.log "flags or hidden"
 
         mines =
             Dict.filter (\_ v -> v == Mine) gm.grid
