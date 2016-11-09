@@ -302,21 +302,19 @@ randomMines cell model seed =
 
         cellIdx =
             (row * model.cols + col)
-                |> Debug.log "cellIdx"
 
         gen =
             Random.list (model.rows * model.cols) (Random.int 0 (model.rows * model.cols - 1))
                 |> Random.map
                     (\idxs ->
                         idxs
-                            |> Debug.log "idxs"
                             |> List.filter ((/=) cellIdx)
                             |> List.unique
                             |> List.take model.minesCount
                             |> List.map (\idx -> ( idx // model.cols, idx % model.cols ))
                     )
     in
-        Random.step gen seed |> Debug.log "gen list" |> fst
+        Random.step gen seed |> fst
 
 
 initMines model cell =
@@ -327,7 +325,6 @@ initMines model cell =
         case model.mines of
             [] ->
                 { model | mines = randomMines cell model seed }
-                    |> Debug.log "mines generated"
 
             _ ->
                 model
@@ -337,23 +334,17 @@ updateGrid cell model =
     let
         cellState =
             getCellState model cell
-
-        m =
-            model.grid |> Debug.log "the grid"
     in
         if cellState == Visible 0 then
             let
                 ns =
                     getNeighbours model cell
-                        |> Debug.log "initial neighbours"
                         |> List.filter
                             (\c ->
                                 Dict.filter (\k v -> k == c && v == Hidden) model.grid
-                                    |> Debug.log "filtered dict"
                                     |> Dict.size
                                     |> ((<) 0)
                             )
-                        |> Debug.log "filtered neighbours"
             in
                 List.foldr updateGrid { model | grid = Dict.insert cell cellState model.grid } ns
         else
