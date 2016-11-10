@@ -8693,6 +8693,35 @@ var _elm_lang$html$Html_Events$Options = F2(
 	function (a, b) {
 		return {stopPropagation: a, preventDefault: b};
 	});
+var _user$project$Game_Types$GameData = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {grid: a, cols: b, rows: c, score: d, mines: e, minesCount: f, time: g, startTime: h};
+	});
+var _user$project$Game_Types$Mine = {ctor: 'Mine'};
+var _user$project$Game_Types$Flagged = {ctor: 'Flagged'};
+var _user$project$Game_Types$Visible = function (a) {
+	return {ctor: 'Visible', _0: a};
+};
+var _user$project$Game_Types$Hidden = {ctor: 'Hidden'};
+var _user$project$Game_Types$Tick = function (a) {
+	return {ctor: 'Tick', _0: a};
+};
+var _user$project$Game_Types$Restart = {ctor: 'Restart'};
+var _user$project$Game_Types$CellFlagged = function (a) {
+	return {ctor: 'CellFlagged', _0: a};
+};
+var _user$project$Game_Types$CellClicked = function (a) {
+	return {ctor: 'CellClicked', _0: a};
+};
+var _user$project$Game_Types$GameLost = function (a) {
+	return {ctor: 'GameLost', _0: a};
+};
+var _user$project$Game_Types$GameWon = function (a) {
+	return {ctor: 'GameWon', _0: a};
+};
+var _user$project$Game_Types$Playing = function (a) {
+	return {ctor: 'Playing', _0: a};
+};
 var _user$project$List_Extras$unique = A2(
 	_elm_lang$core$List$foldl,
 	F2(
@@ -8701,11 +8730,135 @@ var _user$project$List_Extras$unique = A2(
 		}),
 	_elm_lang$core$Native_List.fromArray(
 		[]));
-var _user$project$MineSweeper$randomMines = F3(
+var _user$project$Game_State$initDict = F2(
+	function (cols, rows) {
+		return _elm_lang$core$Dict$fromList(
+			_elm_lang$core$List$concat(
+				A2(
+					_elm_lang$core$List$map,
+					function (r) {
+						return A2(
+							_elm_lang$core$List$map,
+							function (c) {
+								return {
+									ctor: '_Tuple2',
+									_0: {ctor: '_Tuple2', _0: r, _1: c},
+									_1: _user$project$Game_Types$Hidden
+								};
+							},
+							_elm_lang$core$Native_List.range(0, cols - 1));
+					},
+					_elm_lang$core$Native_List.range(0, rows - 1))));
+	});
+var _user$project$Game_State$wonLostContinue = function (gm) {
+	var mines = A2(
+		_elm_lang$core$Dict$filter,
+		F2(
+			function (_p0, v) {
+				return _elm_lang$core$Native_Utils.eq(v, _user$project$Game_Types$Mine);
+			}),
+		gm.grid);
+	var flagsOrHidden = A2(
+		_elm_lang$core$Dict$filter,
+		F2(
+			function (_p1, v) {
+				return _elm_lang$core$Native_Utils.eq(v, _user$project$Game_Types$Flagged) || _elm_lang$core$Native_Utils.eq(v, _user$project$Game_Types$Hidden);
+			}),
+		gm.grid);
+	return (_elm_lang$core$Native_Utils.cmp(
+		_elm_lang$core$Dict$size(mines),
+		0) > 0) ? _user$project$Game_Types$GameLost(gm) : (_elm_lang$core$Native_Utils.eq(
+		_elm_lang$core$Dict$size(flagsOrHidden),
+		_elm_lang$core$List$length(gm.mines)) ? _user$project$Game_Types$GameWon(gm) : _user$project$Game_Types$Playing(gm));
+};
+var _user$project$Game_State$getNeighbours = F2(
+	function (model, cell) {
+		var _p2 = cell;
+		var r = _p2._0;
+		var c = _p2._1;
+		return A2(
+			_elm_lang$core$List$filter,
+			function (_p3) {
+				var _p4 = _p3;
+				var _p6 = _p4._0;
+				var _p5 = _p4._1;
+				return (_elm_lang$core$Native_Utils.cmp(_p6, 0) > -1) && ((_elm_lang$core$Native_Utils.cmp(_p6, model.rows) < 0) && ((_elm_lang$core$Native_Utils.cmp(_p5, 0) > -1) && (_elm_lang$core$Native_Utils.cmp(_p5, model.cols) < 0)));
+			},
+			_elm_lang$core$Native_List.fromArray(
+				[
+					{ctor: '_Tuple2', _0: r - 1, _1: c - 1},
+					{ctor: '_Tuple2', _0: r - 1, _1: c},
+					{ctor: '_Tuple2', _0: r - 1, _1: c + 1},
+					{ctor: '_Tuple2', _0: r, _1: c - 1},
+					{ctor: '_Tuple2', _0: r, _1: c + 1},
+					{ctor: '_Tuple2', _0: r + 1, _1: c - 1},
+					{ctor: '_Tuple2', _0: r + 1, _1: c},
+					{ctor: '_Tuple2', _0: r + 1, _1: c + 1}
+				]));
+	});
+var _user$project$Game_State$getCellState = F2(
+	function (model, cell) {
+		if (A2(_elm_lang$core$List$member, cell, model.mines)) {
+			return _user$project$Game_Types$Mine;
+		} else {
+			var ns = A2(_user$project$Game_State$getNeighbours, model, cell);
+			var ms = _elm_lang$core$List$length(
+				A2(
+					_elm_lang$core$List$filter,
+					function (m) {
+						return A2(_elm_lang$core$List$member, m, ns);
+					},
+					model.mines));
+			return _user$project$Game_Types$Visible(ms);
+		}
+	});
+var _user$project$Game_State$updateGrid = F2(
+	function (cell, model) {
+		var cellState = A2(_user$project$Game_State$getCellState, model, cell);
+		if (_elm_lang$core$Native_Utils.eq(
+			cellState,
+			_user$project$Game_Types$Visible(0))) {
+			var ns = A2(
+				_elm_lang$core$List$filter,
+				function (c) {
+					return A2(
+						F2(
+							function (x, y) {
+								return _elm_lang$core$Native_Utils.cmp(x, y) < 0;
+							}),
+						0,
+						_elm_lang$core$Dict$size(
+							A2(
+								_elm_lang$core$Dict$filter,
+								F2(
+									function (k, v) {
+										return _elm_lang$core$Native_Utils.eq(k, c) && _elm_lang$core$Native_Utils.eq(v, _user$project$Game_Types$Hidden);
+									}),
+								model.grid)));
+				},
+				A2(_user$project$Game_State$getNeighbours, model, cell));
+			return A3(
+				_elm_lang$core$List$foldr,
+				_user$project$Game_State$updateGrid,
+				_elm_lang$core$Native_Utils.update(
+					model,
+					{
+						grid: A3(_elm_lang$core$Dict$insert, cell, cellState, model.grid)
+					}),
+				ns);
+		} else {
+			return _elm_lang$core$Native_Utils.update(
+				model,
+				{
+					grid: A3(_elm_lang$core$Dict$insert, cell, cellState, model.grid)
+				});
+		}
+	});
+var _user$project$Game_State$randomMines = F3(
 	function (cell, model, seed) {
-		var _p0 = cell;
-		var row = _p0._0;
-		var col = _p0._1;
+		var _p7 = cell;
+		var row = _p7._0;
+		var col = _p7._1;
 		var cellIdx = (row * model.cols) + col;
 		var gen = A2(
 			_elm_lang$core$Random$map,
@@ -8738,49 +8891,96 @@ var _user$project$MineSweeper$randomMines = F3(
 		return _elm_lang$core$Basics$fst(
 			A2(_elm_lang$core$Random$step, gen, seed));
 	});
-var _user$project$MineSweeper$initMines = F2(
+var _user$project$Game_State$initMines = F2(
 	function (model, cell) {
 		var seed = _elm_lang$core$Random$initialSeed(
 			_elm_lang$core$Basics$floor(model.startTime));
-		var _p1 = model.mines;
-		if (_p1.ctor === '[]') {
+		var _p8 = model.mines;
+		if (_p8.ctor === '[]') {
 			return _elm_lang$core$Native_Utils.update(
 				model,
 				{
-					mines: A3(_user$project$MineSweeper$randomMines, cell, model, seed)
+					mines: A3(_user$project$Game_State$randomMines, cell, model, seed)
 				});
 		} else {
 			return model;
 		}
 	});
-var _user$project$MineSweeper$getNeighbours = F2(
-	function (model, cell) {
-		var _p2 = cell;
-		var r = _p2._0;
-		var c = _p2._1;
-		return A2(
-			_elm_lang$core$List$filter,
-			function (_p3) {
-				var _p4 = _p3;
-				var _p6 = _p4._0;
-				var _p5 = _p4._1;
-				return (_elm_lang$core$Native_Utils.cmp(_p6, 0) > -1) && ((_elm_lang$core$Native_Utils.cmp(_p6, model.rows) < 0) && ((_elm_lang$core$Native_Utils.cmp(_p5, 0) > -1) && (_elm_lang$core$Native_Utils.cmp(_p5, model.cols) < 0)));
-			},
-			_elm_lang$core$Native_List.fromArray(
-				[
-					{ctor: '_Tuple2', _0: r - 1, _1: c - 1},
-					{ctor: '_Tuple2', _0: r - 1, _1: c},
-					{ctor: '_Tuple2', _0: r - 1, _1: c + 1},
-					{ctor: '_Tuple2', _0: r, _1: c - 1},
-					{ctor: '_Tuple2', _0: r, _1: c + 1},
-					{ctor: '_Tuple2', _0: r + 1, _1: c - 1},
-					{ctor: '_Tuple2', _0: r + 1, _1: c},
-					{ctor: '_Tuple2', _0: r + 1, _1: c + 1}
-				]));
+var _user$project$Game_State$init = F3(
+	function (cols, rows, mines) {
+		return _user$project$Game_Types$Playing(
+			A8(
+				_user$project$Game_Types$GameData,
+				A2(_user$project$Game_State$initDict, cols, rows),
+				cols,
+				rows,
+				0,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				mines,
+				0,
+				0));
 	});
-var _user$project$MineSweeper$color = function (m) {
-	var _p7 = m;
-	switch (_p7) {
+var _user$project$Game_State$update = F2(
+	function (msg, model) {
+		var _p9 = model;
+		switch (_p9.ctor) {
+			case 'Playing':
+				var _p12 = _p9._0;
+				var _p10 = msg;
+				switch (_p10.ctor) {
+					case 'Tick':
+						return _elm_lang$core$Native_Utils.eq(
+							_p12.mines,
+							_elm_lang$core$Native_List.fromArray(
+								[])) ? _user$project$Game_Types$Playing(
+							_elm_lang$core$Native_Utils.update(
+								_p12,
+								{startTime: _p10._0})) : _user$project$Game_Types$Playing(
+							_elm_lang$core$Native_Utils.update(
+								_p12,
+								{time: _p12.time + 1}));
+					case 'CellClicked':
+						var _p11 = _p10._0;
+						return _user$project$Game_State$wonLostContinue(
+							A2(
+								_user$project$Game_State$updateGrid,
+								_p11,
+								A2(_user$project$Game_State$initMines, _p12, _p11)));
+					case 'Restart':
+						return A3(_user$project$Game_State$init, _p12.cols, _p12.rows, _p12.minesCount);
+					default:
+						return model;
+				}
+			case 'GameLost':
+				var _p14 = _p9._0;
+				var _p13 = msg;
+				if (_p13.ctor === 'Restart') {
+					return A3(_user$project$Game_State$init, _p14.cols, _p14.rows, _p14.minesCount);
+				} else {
+					return model;
+				}
+			default:
+				var _p16 = _p9._0;
+				var _p15 = msg;
+				if (_p15.ctor === 'Restart') {
+					return A3(_user$project$Game_State$init, _p16.cols, _p16.rows, _p16.minesCount);
+				} else {
+					return model;
+				}
+		}
+	});
+var _user$project$Game_State$subscriptions = function (model) {
+	var _p17 = model;
+	if (_p17.ctor === 'Playing') {
+		return A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second, _user$project$Game_Types$Tick);
+	} else {
+		return _elm_lang$core$Platform_Sub$none;
+	}
+};
+var _user$project$Game_View$color = function (m) {
+	var _p0 = m;
+	switch (_p0) {
 		case 0:
 			return 'lightgray';
 		case 1:
@@ -8799,118 +8999,23 @@ var _user$project$MineSweeper$color = function (m) {
 			return 'black';
 	}
 };
-var _user$project$MineSweeper$format = function (_p8) {
+var _user$project$Game_View$format = function (_p1) {
 	return A3(
 		_elm_lang$core$String$padLeft,
 		3,
 		_elm_lang$core$Native_Utils.chr('0'),
-		_elm_lang$core$Basics$toString(_p8));
+		_elm_lang$core$Basics$toString(_p1));
 };
-var _user$project$MineSweeper$GameModel = F8(
-	function (a, b, c, d, e, f, g, h) {
-		return {grid: a, cols: b, rows: c, score: d, mines: e, minesCount: f, time: g, startTime: h};
-	});
-var _user$project$MineSweeper$Mine = {ctor: 'Mine'};
-var _user$project$MineSweeper$Flagged = {ctor: 'Flagged'};
-var _user$project$MineSweeper$Visible = function (a) {
-	return {ctor: 'Visible', _0: a};
-};
-var _user$project$MineSweeper$getCellState = F2(
-	function (model, cell) {
-		if (A2(_elm_lang$core$List$member, cell, model.mines)) {
-			return _user$project$MineSweeper$Mine;
-		} else {
-			var ns = A2(_user$project$MineSweeper$getNeighbours, model, cell);
-			var ms = _elm_lang$core$List$length(
-				A2(
-					_elm_lang$core$List$filter,
-					function (m) {
-						return A2(_elm_lang$core$List$member, m, ns);
-					},
-					model.mines));
-			return _user$project$MineSweeper$Visible(ms);
-		}
-	});
-var _user$project$MineSweeper$Hidden = {ctor: 'Hidden'};
-var _user$project$MineSweeper$initDict = F2(
-	function (cols, rows) {
-		return _elm_lang$core$Dict$fromList(
-			_elm_lang$core$List$concat(
-				A2(
-					_elm_lang$core$List$map,
-					function (r) {
-						return A2(
-							_elm_lang$core$List$map,
-							function (c) {
-								return {
-									ctor: '_Tuple2',
-									_0: {ctor: '_Tuple2', _0: r, _1: c},
-									_1: _user$project$MineSweeper$Hidden
-								};
-							},
-							_elm_lang$core$Native_List.range(0, cols - 1));
-					},
-					_elm_lang$core$Native_List.range(0, rows - 1))));
-	});
-var _user$project$MineSweeper$updateGrid = F2(
-	function (cell, model) {
-		var cellState = A2(_user$project$MineSweeper$getCellState, model, cell);
-		if (_elm_lang$core$Native_Utils.eq(
-			cellState,
-			_user$project$MineSweeper$Visible(0))) {
-			var ns = A2(
-				_elm_lang$core$List$filter,
-				function (c) {
-					return A2(
-						F2(
-							function (x, y) {
-								return _elm_lang$core$Native_Utils.cmp(x, y) < 0;
-							}),
-						0,
-						_elm_lang$core$Dict$size(
-							A2(
-								_elm_lang$core$Dict$filter,
-								F2(
-									function (k, v) {
-										return _elm_lang$core$Native_Utils.eq(k, c) && _elm_lang$core$Native_Utils.eq(v, _user$project$MineSweeper$Hidden);
-									}),
-								model.grid)));
-				},
-				A2(_user$project$MineSweeper$getNeighbours, model, cell));
-			return A3(
-				_elm_lang$core$List$foldr,
-				_user$project$MineSweeper$updateGrid,
-				_elm_lang$core$Native_Utils.update(
-					model,
-					{
-						grid: A3(_elm_lang$core$Dict$insert, cell, cellState, model.grid)
-					}),
-				ns);
-		} else {
-			return _elm_lang$core$Native_Utils.update(
-				model,
-				{
-					grid: A3(_elm_lang$core$Dict$insert, cell, cellState, model.grid)
-				});
-		}
-	});
-var _user$project$MineSweeper$Restart = {ctor: 'Restart'};
-var _user$project$MineSweeper$CellFlagged = function (a) {
-	return {ctor: 'CellFlagged', _0: a};
-};
-var _user$project$MineSweeper$CellClicked = function (a) {
-	return {ctor: 'CellClicked', _0: a};
-};
-var _user$project$MineSweeper$renderCell = F4(
-	function (msg, model, row, col) {
-		var _p9 = A2(
+var _user$project$Game_View$renderCell = F3(
+	function (model, row, col) {
+		var _p2 = A2(
 			_elm_lang$core$Maybe$withDefault,
-			_user$project$MineSweeper$Hidden,
+			_user$project$Game_Types$Hidden,
 			A2(
 				_elm_lang$core$Dict$get,
 				{ctor: '_Tuple2', _0: row, _1: col},
 				model.grid));
-		switch (_p9.ctor) {
+		switch (_p2.ctor) {
 			case 'Hidden':
 				return A2(
 					_elm_lang$html$Html$div,
@@ -8927,14 +9032,13 @@ var _user$project$MineSweeper$renderCell = F4(
 									{ctor: '_Tuple2', _0: 'border', _1: '1px solid #333'}
 								])),
 							_elm_lang$html$Html_Events$onClick(
-							msg(
-								_user$project$MineSweeper$CellClicked(
-									{ctor: '_Tuple2', _0: row, _1: col})))
+							_user$project$Game_Types$CellClicked(
+								{ctor: '_Tuple2', _0: row, _1: col}))
 						]),
 					_elm_lang$core$Native_List.fromArray(
 						[]));
 			case 'Visible':
-				var _p10 = _p9._0;
+				var _p3 = _p2._0;
 				return A2(
 					_elm_lang$html$Html$div,
 					_elm_lang$core$Native_List.fromArray(
@@ -8952,7 +9056,7 @@ var _user$project$MineSweeper$renderCell = F4(
 									{
 									ctor: '_Tuple2',
 									_0: 'color',
-									_1: _user$project$MineSweeper$color(_p10)
+									_1: _user$project$Game_View$color(_p3)
 								},
 									{ctor: '_Tuple2', _0: 'font-weight', _1: 'bold'},
 									{ctor: '_Tuple2', _0: 'text-align', _1: 'center'}
@@ -8960,8 +9064,8 @@ var _user$project$MineSweeper$renderCell = F4(
 						]),
 					_elm_lang$core$Native_List.fromArray(
 						[
-							_elm_lang$core$Native_Utils.eq(_p10, 0) ? _elm_lang$html$Html$text('') : _elm_lang$html$Html$text(
-							_elm_lang$core$Basics$toString(_p10))
+							_elm_lang$core$Native_Utils.eq(_p3, 0) ? _elm_lang$html$Html$text('') : _elm_lang$html$Html$text(
+							_elm_lang$core$Basics$toString(_p3))
 						]));
 			case 'Mine':
 				return A2(
@@ -9005,8 +9109,8 @@ var _user$project$MineSweeper$renderCell = F4(
 						[]));
 		}
 	});
-var _user$project$MineSweeper$renderRow = F3(
-	function (msg, model, row) {
+var _user$project$Game_View$renderRow = F2(
+	function (model, row) {
 		return A2(
 			_elm_lang$html$Html$div,
 			_elm_lang$core$Native_List.fromArray(
@@ -9019,469 +9123,339 @@ var _user$project$MineSweeper$renderRow = F3(
 				]),
 			A2(
 				_elm_lang$core$List$map,
-				A3(_user$project$MineSweeper$renderCell, msg, model, row),
+				A2(_user$project$Game_View$renderCell, model, row),
 				_elm_lang$core$Native_List.range(0, model.cols - 1)));
 	});
-var _user$project$MineSweeper$renderGrid = F2(
-	function (msg, model) {
-		return A2(
-			_elm_lang$core$List$map,
-			A2(_user$project$MineSweeper$renderRow, msg, model),
-			_elm_lang$core$Native_List.range(0, model.rows - 1));
-	});
-var _user$project$MineSweeper$drawBoard = F2(
-	function (msg, gm) {
-		return A2(
-			_elm_lang$html$Html$div,
-			_elm_lang$core$Native_List.fromArray(
-				[
-					_elm_lang$html$Html_Attributes$style(
-					_elm_lang$core$Native_List.fromArray(
-						[
-							{ctor: '_Tuple2', _0: 'font-family', _1: 'monospace'},
-							{ctor: '_Tuple2', _0: 'font-size', _1: '24px'}
-						]))
-				]),
-			_elm_lang$core$Native_List.fromArray(
-				[
-					A2(
-					_elm_lang$html$Html$div,
-					_elm_lang$core$Native_List.fromArray(
-						[
-							_elm_lang$html$Html_Attributes$class('header'),
-							_elm_lang$html$Html_Attributes$style(
-							_elm_lang$core$Native_List.fromArray(
-								[
-									{
-									ctor: '_Tuple2',
-									_0: 'width',
-									_1: A2(
-										_elm_lang$core$Basics_ops['++'],
-										_elm_lang$core$Basics$toString(gm.cols * 31),
-										'px')
-								}
-								]))
-						]),
-					_elm_lang$core$Native_List.fromArray(
-						[
-							A2(
-							_elm_lang$html$Html$div,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Attributes$style(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											{ctor: '_Tuple2', _0: 'float', _1: 'left'},
-											{ctor: '_Tuple2', _0: 'color', _1: 'red'},
-											{ctor: '_Tuple2', _0: 'width', _1: '33.3333%'}
-										]))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text(
-									_user$project$MineSweeper$format(gm.minesCount))
-								])),
-							A2(
-							_elm_lang$html$Html$div,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Attributes$style(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											{ctor: '_Tuple2', _0: 'color', _1: 'black'},
-											{ctor: '_Tuple2', _0: 'background', _1: 'yellow'},
-											{ctor: '_Tuple2', _0: 'width', _1: '48px'},
-											{ctor: '_Tuple2', _0: 'margin', _1: '0 auto'}
-										])),
-									_elm_lang$html$Html_Events$onClick(
-									msg(_user$project$MineSweeper$Restart))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text(':-)')
-								])),
-							A2(
-							_elm_lang$html$Html$div,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Attributes$style(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											{ctor: '_Tuple2', _0: 'float', _1: 'right'},
-											{ctor: '_Tuple2', _0: 'color', _1: 'red'},
-											{ctor: '_Tuple2', _0: 'width', _1: '33.3333%'},
-											{ctor: '_Tuple2', _0: 'text-align', _1: 'right'}
-										]))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text(
-									_user$project$MineSweeper$format(gm.time))
-								]))
-						])),
-					A2(
-					_elm_lang$html$Html$div,
-					_elm_lang$core$Native_List.fromArray(
-						[
-							_elm_lang$html$Html_Attributes$class('grid'),
-							_elm_lang$html$Html_Attributes$style(
-							_elm_lang$core$Native_List.fromArray(
-								[
-									{ctor: '_Tuple2', _0: 'background-color', _1: 'white'},
-									{ctor: '_Tuple2', _0: 'font-size', _1: '16px'},
-									{ctor: '_Tuple2', _0: 'clear', _1: 'both'}
-								]))
-						]),
-					A2(_user$project$MineSweeper$renderGrid, msg, gm))
-				]));
-	});
-var _user$project$MineSweeper$view = F2(
-	function (msg, model) {
-		var _p11 = model;
-		switch (_p11.ctor) {
-			case 'Playing':
-				return A2(_user$project$MineSweeper$drawBoard, msg, _p11._0);
-			case 'GameWon':
-				return A2(
-					_elm_lang$html$Html$div,
-					_elm_lang$core$Native_List.fromArray(
-						[]),
-					_elm_lang$core$Native_List.fromArray(
-						[
-							A2(_user$project$MineSweeper$drawBoard, msg, _p11._0),
-							A2(
-							_elm_lang$html$Html$div,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Attributes$style(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											{ctor: '_Tuple2', _0: 'position', _1: 'absolute'},
-											{ctor: '_Tuple2', _0: 'top', _1: '100px'},
-											{ctor: '_Tuple2', _0: 'left', _1: '50px'},
-											{ctor: '_Tuple2', _0: 'font-size', _1: '64px'},
-											{ctor: '_Tuple2', _0: 'padding', _1: '24px'},
-											{ctor: '_Tuple2', _0: 'background', _1: 'yellow'}
-										]))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('Victory!')
-								]))
-						]));
-			default:
-				return A2(
-					_elm_lang$html$Html$div,
-					_elm_lang$core$Native_List.fromArray(
-						[]),
-					_elm_lang$core$Native_List.fromArray(
-						[
-							A2(_user$project$MineSweeper$drawBoard, msg, _p11._0),
-							A2(
-							_elm_lang$html$Html$div,
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html_Attributes$style(
-									_elm_lang$core$Native_List.fromArray(
-										[
-											{ctor: '_Tuple2', _0: 'position', _1: 'absolute'},
-											{ctor: '_Tuple2', _0: 'top', _1: '100px'},
-											{ctor: '_Tuple2', _0: 'left', _1: '50px'},
-											{ctor: '_Tuple2', _0: 'font-size', _1: '64px'},
-											{ctor: '_Tuple2', _0: 'padding', _1: '24px'},
-											{ctor: '_Tuple2', _0: 'background', _1: 'yellow'}
-										]))
-								]),
-							_elm_lang$core$Native_List.fromArray(
-								[
-									_elm_lang$html$Html$text('You lost!')
-								]))
-						]));
-		}
-	});
-var _user$project$MineSweeper$GameLost = function (a) {
-	return {ctor: 'GameLost', _0: a};
+var _user$project$Game_View$renderGrid = function (model) {
+	return A2(
+		_elm_lang$core$List$map,
+		_user$project$Game_View$renderRow(model),
+		_elm_lang$core$Native_List.range(0, model.rows - 1));
 };
-var _user$project$MineSweeper$GameWon = function (a) {
-	return {ctor: 'GameWon', _0: a};
-};
-var _user$project$MineSweeper$Playing = function (a) {
-	return {ctor: 'Playing', _0: a};
-};
-var _user$project$MineSweeper$startBeginner = _user$project$MineSweeper$Playing(
-	A8(
-		_user$project$MineSweeper$GameModel,
-		A2(_user$project$MineSweeper$initDict, 8, 8),
-		8,
-		8,
-		0,
+var _user$project$Game_View$drawBoard = function (gm) {
+	return A2(
+		_elm_lang$html$Html$div,
 		_elm_lang$core$Native_List.fromArray(
-			[]),
-		10,
-		0,
-		0));
-var _user$project$MineSweeper$startIntermediate = _user$project$MineSweeper$Playing(
-	A8(
-		_user$project$MineSweeper$GameModel,
-		A2(_user$project$MineSweeper$initDict, 16, 16),
-		16,
-		16,
-		0,
-		_elm_lang$core$Native_List.fromArray(
-			[]),
-		50,
-		0,
-		0));
-var _user$project$MineSweeper$startAdvanced = _user$project$MineSweeper$Playing(
-	A8(
-		_user$project$MineSweeper$GameModel,
-		A2(_user$project$MineSweeper$initDict, 30, 20),
-		30,
-		20,
-		0,
-		_elm_lang$core$Native_List.fromArray(
-			[]),
-		100,
-		0,
-		0));
-var _user$project$MineSweeper$tick = F2(
-	function (model, time) {
-		var _p12 = model;
-		if (_p12.ctor === 'Playing') {
-			var _p13 = _p12._0;
-			return _elm_lang$core$Native_Utils.eq(
-				_p13.mines,
+			[
+				_elm_lang$html$Html_Attributes$style(
 				_elm_lang$core$Native_List.fromArray(
-					[])) ? _user$project$MineSweeper$Playing(
-				_elm_lang$core$Native_Utils.update(
-					_p13,
-					{startTime: time})) : _user$project$MineSweeper$Playing(
-				_elm_lang$core$Native_Utils.update(
-					_p13,
-					{time: _p13.time + 1}));
-		} else {
-			return model;
-		}
-	});
-var _user$project$MineSweeper$wonLostContinue = function (gm) {
-	var mines = A2(
-		_elm_lang$core$Dict$filter,
-		F2(
-			function (_p14, v) {
-				return _elm_lang$core$Native_Utils.eq(v, _user$project$MineSweeper$Mine);
-			}),
-		gm.grid);
-	var flagsOrHidden = A2(
-		_elm_lang$core$Dict$filter,
-		F2(
-			function (_p15, v) {
-				return _elm_lang$core$Native_Utils.eq(v, _user$project$MineSweeper$Flagged) || _elm_lang$core$Native_Utils.eq(v, _user$project$MineSweeper$Hidden);
-			}),
-		gm.grid);
-	return (_elm_lang$core$Native_Utils.cmp(
-		_elm_lang$core$Dict$size(mines),
-		0) > 0) ? _user$project$MineSweeper$GameLost(gm) : (_elm_lang$core$Native_Utils.eq(
-		_elm_lang$core$Dict$size(flagsOrHidden),
-		_elm_lang$core$List$length(gm.mines)) ? _user$project$MineSweeper$GameWon(gm) : _user$project$MineSweeper$Playing(gm));
+					[
+						{ctor: '_Tuple2', _0: 'font-family', _1: 'monospace'},
+						{ctor: '_Tuple2', _0: 'font-size', _1: '24px'}
+					]))
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('header'),
+						_elm_lang$html$Html_Attributes$style(
+						_elm_lang$core$Native_List.fromArray(
+							[
+								{
+								ctor: '_Tuple2',
+								_0: 'width',
+								_1: A2(
+									_elm_lang$core$Basics_ops['++'],
+									_elm_lang$core$Basics$toString(gm.cols * 31),
+									'px')
+							}
+							]))
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$style(
+								_elm_lang$core$Native_List.fromArray(
+									[
+										{ctor: '_Tuple2', _0: 'float', _1: 'left'},
+										{ctor: '_Tuple2', _0: 'color', _1: 'red'},
+										{ctor: '_Tuple2', _0: 'width', _1: '33.3333%'}
+									]))
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text(
+								_user$project$Game_View$format(gm.minesCount))
+							])),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$style(
+								_elm_lang$core$Native_List.fromArray(
+									[
+										{ctor: '_Tuple2', _0: 'color', _1: 'black'},
+										{ctor: '_Tuple2', _0: 'background', _1: 'yellow'},
+										{ctor: '_Tuple2', _0: 'width', _1: '48px'},
+										{ctor: '_Tuple2', _0: 'margin', _1: '0 auto'}
+									])),
+								_elm_lang$html$Html_Events$onClick(_user$project$Game_Types$Restart)
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text(':-)')
+							])),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$style(
+								_elm_lang$core$Native_List.fromArray(
+									[
+										{ctor: '_Tuple2', _0: 'float', _1: 'right'},
+										{ctor: '_Tuple2', _0: 'color', _1: 'red'},
+										{ctor: '_Tuple2', _0: 'width', _1: '33.3333%'},
+										{ctor: '_Tuple2', _0: 'text-align', _1: 'right'}
+									]))
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text(
+								_user$project$Game_View$format(gm.time))
+							]))
+					])),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('grid'),
+						_elm_lang$html$Html_Attributes$style(
+						_elm_lang$core$Native_List.fromArray(
+							[
+								{ctor: '_Tuple2', _0: 'background-color', _1: 'white'},
+								{ctor: '_Tuple2', _0: 'font-size', _1: '16px'},
+								{ctor: '_Tuple2', _0: 'clear', _1: 'both'}
+							]))
+					]),
+				_user$project$Game_View$renderGrid(gm))
+			]));
 };
-var _user$project$MineSweeper$update = F2(
-	function (msg, model) {
-		var _p16 = model;
-		switch (_p16.ctor) {
-			case 'Playing':
-				var _p20 = _p16._0;
-				var _p17 = msg;
-				switch (_p17.ctor) {
-					case 'CellClicked':
-						var _p18 = _p17._0;
-						return _user$project$MineSweeper$wonLostContinue(
-							A2(
-								_user$project$MineSweeper$updateGrid,
-								_p18,
-								A2(_user$project$MineSweeper$initMines, _p20, _p18)));
-					case 'Restart':
-						var _p19 = _p20.cols;
-						switch (_p19) {
-							case 8:
-								return _user$project$MineSweeper$startBeginner;
-							case 16:
-								return _user$project$MineSweeper$startIntermediate;
-							default:
-								return _user$project$MineSweeper$startAdvanced;
-						}
-					default:
-						return _user$project$MineSweeper$Playing(_p20);
-				}
-			case 'GameLost':
-				var _p23 = _p16._0;
-				var _p21 = msg;
-				if (_p21.ctor === 'Restart') {
-					var _p22 = _p23.cols;
-					switch (_p22) {
-						case 8:
-							return _user$project$MineSweeper$startBeginner;
-						case 16:
-							return _user$project$MineSweeper$startIntermediate;
-						default:
-							return _user$project$MineSweeper$startAdvanced;
-					}
-				} else {
-					return _user$project$MineSweeper$GameLost(_p23);
-				}
-			default:
-				var _p26 = _p16._0;
-				var _p24 = msg;
-				if (_p24.ctor === 'Restart') {
-					var _p25 = _p26.cols;
-					switch (_p25) {
-						case 8:
-							return _user$project$MineSweeper$startBeginner;
-						case 16:
-							return _user$project$MineSweeper$startIntermediate;
-						default:
-							return _user$project$MineSweeper$startAdvanced;
-					}
-				} else {
-					return _user$project$MineSweeper$GameWon(_p26);
-				}
-		}
-	});
-var _user$project$Main$Game = function (a) {
+var _user$project$Game_View$root = function (model) {
+	var _p4 = model;
+	switch (_p4.ctor) {
+		case 'Playing':
+			return _user$project$Game_View$drawBoard(_p4._0);
+		case 'GameWon':
+			return A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_user$project$Game_View$drawBoard(_p4._0),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$style(
+								_elm_lang$core$Native_List.fromArray(
+									[
+										{ctor: '_Tuple2', _0: 'position', _1: 'absolute'},
+										{ctor: '_Tuple2', _0: 'top', _1: '100px'},
+										{ctor: '_Tuple2', _0: 'left', _1: '50px'},
+										{ctor: '_Tuple2', _0: 'font-size', _1: '64px'},
+										{ctor: '_Tuple2', _0: 'padding', _1: '24px'},
+										{ctor: '_Tuple2', _0: 'background', _1: 'yellow'}
+									]))
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('Victory!')
+							]))
+					]));
+		default:
+			return A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_user$project$Game_View$drawBoard(_p4._0),
+						A2(
+						_elm_lang$html$Html$div,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$style(
+								_elm_lang$core$Native_List.fromArray(
+									[
+										{ctor: '_Tuple2', _0: 'position', _1: 'absolute'},
+										{ctor: '_Tuple2', _0: 'top', _1: '100px'},
+										{ctor: '_Tuple2', _0: 'left', _1: '50px'},
+										{ctor: '_Tuple2', _0: 'font-size', _1: '64px'},
+										{ctor: '_Tuple2', _0: 'padding', _1: '24px'},
+										{ctor: '_Tuple2', _0: 'background', _1: 'yellow'}
+									]))
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('You lost!')
+							]))
+					]));
+	}
+};
+var _user$project$StartScreen_Types$StartAdvanced = {ctor: 'StartAdvanced'};
+var _user$project$StartScreen_Types$StartIntermediate = {ctor: 'StartIntermediate'};
+var _user$project$StartScreen_Types$StartBeginner = {ctor: 'StartBeginner'};
+var _user$project$Types$Game = function (a) {
 	return {ctor: 'Game', _0: a};
 };
-var _user$project$Main$Tick = function (a) {
-	return {ctor: 'Tick', _0: a};
+var _user$project$Types$StartScreen = {ctor: 'StartScreen'};
+var _user$project$Types$GameMsg = function (a) {
+	return {ctor: 'GameMsg', _0: a};
 };
-var _user$project$Main$subs = function (model) {
-	var _p0 = model;
-	if (_p0.ctor === 'StartScreen') {
-		return _elm_lang$core$Platform_Sub$none;
-	} else {
-		return A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second, _user$project$Main$Tick);
+var _user$project$Types$StartScreenMsg = function (a) {
+	return {ctor: 'StartScreenMsg', _0: a};
+};
+var _user$project$State$processStartScreenMsg = function (msg) {
+	var _p0 = msg;
+	switch (_p0.ctor) {
+		case 'StartBeginner':
+			return _user$project$Types$Game(
+				A3(_user$project$Game_State$init, 8, 8, 10));
+		case 'StartIntermediate':
+			return _user$project$Types$Game(
+				A3(_user$project$Game_State$init, 16, 16, 40));
+		default:
+			return _user$project$Types$Game(
+				A3(_user$project$Game_State$init, 30, 20, 99));
 	}
 };
-var _user$project$Main$StartAdvanced = {ctor: 'StartAdvanced'};
-var _user$project$Main$StartIntermediate = {ctor: 'StartIntermediate'};
-var _user$project$Main$StartBeginner = {ctor: 'StartBeginner'};
-var _user$project$Main$renderStartScreen = A2(
-	_elm_lang$html$Html$body,
-	_elm_lang$core$Native_List.fromArray(
-		[]),
-	_elm_lang$core$Native_List.fromArray(
-		[
-			A2(
-			_elm_lang$html$Html$button,
-			_elm_lang$core$Native_List.fromArray(
-				[
-					_elm_lang$html$Html_Events$onClick(_user$project$Main$StartBeginner)
-				]),
-			_elm_lang$core$Native_List.fromArray(
-				[
-					_elm_lang$html$Html$text('Beginner')
-				])),
-			A2(
-			_elm_lang$html$Html$button,
-			_elm_lang$core$Native_List.fromArray(
-				[
-					_elm_lang$html$Html_Events$onClick(_user$project$Main$StartIntermediate)
-				]),
-			_elm_lang$core$Native_List.fromArray(
-				[
-					_elm_lang$html$Html$text('Intermediate')
-				])),
-			A2(
-			_elm_lang$html$Html$button,
-			_elm_lang$core$Native_List.fromArray(
-				[
-					_elm_lang$html$Html_Events$onClick(_user$project$Main$StartAdvanced)
-				]),
-			_elm_lang$core$Native_List.fromArray(
-				[
-					_elm_lang$html$Html$text('Advanced')
-				]))
-		]));
-var _user$project$Main$view = function (model) {
-	var _p1 = model;
-	if (_p1.ctor === 'StartScreen') {
-		return _user$project$Main$renderStartScreen;
-	} else {
-		return A2(_user$project$MineSweeper$view, _user$project$Main$Game, _p1._0);
-	}
-};
-var _user$project$Main$Playing = function (a) {
-	return {ctor: 'Playing', _0: a};
-};
-var _user$project$Main$update = F2(
-	function (msg, state) {
-		var _p2 = state;
-		if (_p2.ctor === 'StartScreen') {
-			var _p3 = msg;
-			switch (_p3.ctor) {
-				case 'StartBeginner':
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_user$project$Main$Playing(_user$project$MineSweeper$startBeginner),
-						_elm_lang$core$Native_List.fromArray(
-							[]));
-				case 'StartIntermediate':
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_user$project$Main$Playing(_user$project$MineSweeper$startIntermediate),
-						_elm_lang$core$Native_List.fromArray(
-							[]));
-				case 'StartAdvanced':
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_user$project$Main$Playing(_user$project$MineSweeper$startAdvanced),
-						_elm_lang$core$Native_List.fromArray(
-							[]));
-				default:
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						state,
-						_elm_lang$core$Native_List.fromArray(
-							[]));
+var _user$project$State$processGameMessages = F2(
+	function (msg, game) {
+		return _user$project$Types$Game(
+			A2(_user$project$Game_State$update, msg, game));
+	});
+var _user$project$State$update = F2(
+	function (msg, model) {
+		var _p1 = model;
+		if (_p1.ctor === 'StartScreen') {
+			var _p2 = msg;
+			if (_p2.ctor === 'StartScreenMsg') {
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_user$project$State$processStartScreenMsg(_p2._0),
+					_elm_lang$core$Native_List.fromArray(
+						[]));
+			} else {
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					_elm_lang$core$Native_List.fromArray(
+						[]));
 			}
 		} else {
-			var _p5 = _p2._0;
-			var _p4 = msg;
-			switch (_p4.ctor) {
-				case 'Tick':
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_user$project$Main$Playing(
-							A2(_user$project$MineSweeper$tick, _p5, _p4._0)),
-						_elm_lang$core$Native_List.fromArray(
-							[]));
-				case 'Game':
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_user$project$Main$Playing(
-							A2(_user$project$MineSweeper$update, _p4._0, _p5)),
-						_elm_lang$core$Native_List.fromArray(
-							[]));
-				default:
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						state,
-						_elm_lang$core$Native_List.fromArray(
-							[]));
+			var _p3 = msg;
+			if (_p3.ctor === 'GameMsg') {
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					A2(_user$project$State$processGameMessages, _p3._0, _p1._0),
+					_elm_lang$core$Native_List.fromArray(
+						[]));
+			} else {
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					_elm_lang$core$Native_List.fromArray(
+						[]));
 			}
 		}
 	});
-var _user$project$Main$StartScreen = {ctor: 'StartScreen'};
+var _user$project$State$subscriptions = function (model) {
+	var _p4 = model;
+	if (_p4.ctor === 'StartScreen') {
+		return _elm_lang$core$Platform_Sub$none;
+	} else {
+		return A2(
+			_elm_lang$core$Platform_Sub$map,
+			_user$project$Types$GameMsg,
+			_user$project$Game_State$subscriptions(_p4._0));
+	}
+};
+var _user$project$State$initialState = {ctor: '_Tuple2', _0: _user$project$Types$StartScreen, _1: _elm_lang$core$Platform_Cmd$none};
+var _user$project$StartScreen_View$root = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$button,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Events$onClick(_user$project$StartScreen_Types$StartBeginner)
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Beginner')
+					])),
+				A2(
+				_elm_lang$html$Html$button,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Events$onClick(_user$project$StartScreen_Types$StartIntermediate)
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Intermediate')
+					])),
+				A2(
+				_elm_lang$html$Html$button,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Events$onClick(_user$project$StartScreen_Types$StartAdvanced)
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Advanced')
+					]))
+			]));
+};
+var _user$project$View$gameView = function (model) {
+	return A2(
+		_elm_lang$html$Html_App$map,
+		_user$project$Types$GameMsg,
+		_user$project$Game_View$root(model));
+};
+var _user$project$View$startScreenView = A2(
+	_elm_lang$html$Html_App$map,
+	_user$project$Types$StartScreenMsg,
+	_user$project$StartScreen_View$root(
+		{ctor: '_Tuple0'}));
+var _user$project$View$rootView = function (model) {
+	return A2(
+		_elm_lang$html$Html$body,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$h1,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Mine Sweeper')
+					])),
+				function () {
+				var _p0 = model;
+				if (_p0.ctor === 'StartScreen') {
+					return _user$project$View$startScreenView;
+				} else {
+					return _user$project$View$gameView(_p0._0);
+				}
+			}()
+			]));
+};
 var _user$project$Main$main = {
 	main: _elm_lang$html$Html_App$program(
-		{
-			init: A2(
-				_elm_lang$core$Platform_Cmd_ops['!'],
-				_user$project$Main$StartScreen,
-				_elm_lang$core$Native_List.fromArray(
-					[])),
-			subscriptions: _user$project$Main$subs,
-			view: _user$project$Main$view,
-			update: _user$project$Main$update
-		})
+		{init: _user$project$State$initialState, update: _user$project$State$update, view: _user$project$View$rootView, subscriptions: _user$project$State$subscriptions})
 };
 var Elm = {};
 Elm['Main'] = Elm['Main'] || {};
