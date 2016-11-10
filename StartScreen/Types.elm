@@ -1,4 +1,4 @@
-module StartScreen.Types exposing (..)
+module StartScreen.Types exposing (Msg(..), Model)
 
 
 type Msg

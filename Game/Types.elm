@@ -19,9 +19,16 @@ type Msg
     = CellClicked Cell
     | CellFlagged Cell
     | Restart
+    | Tick Time
 
 
-type alias Model =
+type Model
+    = Playing GameData
+    | GameWon GameData
+    | GameLost GameData
+
+
+type alias GameData =
     { grid : Dict Cell CellState
     , cols : Int
     , rows : Int
