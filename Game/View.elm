@@ -48,10 +48,18 @@ root model =
 
 
 drawBoard gm =
-    div [ style [ ( "font-family", "monospace" ), ( "font-size", "24px" ) ] ]
+    div
+        [ style
+            [ ( "font-family", "monospace" )
+            , ( "font-size", "24px" )
+            , ( "width", "-webkit-min-content" )
+            , ( "width", "-moz-min-content" )
+            , ( "width", "min-content" )
+            ]
+        ]
         [ div
             [ class "header"
-            , style [ ( "width", (toString (gm.cols * 31)) ++ "px" ) ]
+            , style [ ( "width", "100%" ), ( "background", "#222" ) ]
             ]
             [ div
                 [ style
@@ -98,7 +106,13 @@ renderGrid model =
 
 
 renderRow model row =
-    div [ style [ ( "height", "28px" ) ] ]
+    div
+        [ style
+            [ ( "height", "28px" )
+            , ( "clear", "both" )
+            , ( "display", "inline-flex" )
+            ]
+        ]
         ([0..model.cols - 1] |> List.map (renderCell model row))
 
 

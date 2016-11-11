@@ -31,6 +31,7 @@ update msg model =
                 Tick time ->
                     if g.mines == [] then
                         Playing { g | startTime = time }
+                            |> Debug.log "model and shit"
                     else
                         Playing { g | time = g.time + 1 }
 
