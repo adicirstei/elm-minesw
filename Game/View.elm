@@ -111,11 +111,12 @@ renderGrid model =
 
 renderRow model row =
     div
-        [ style
-            [ ( "height", "28px" )
-            , ( "clear", "both" )
-            , ( "display", "inline-flex" )
-            ]
+        [ class "columns is-gapless is-small"
+          -- style
+          --     [ ( "height", "28px" )
+          --     , ( "clear", "both" )
+          --     , ( "display", "inline-flex" )
+          --     ]
         ]
         ([0..model.cols - 1] |> List.map (renderCell model row))
 
@@ -124,7 +125,8 @@ renderCell model row col =
     case Dict.get ( row, col ) model.grid |> Maybe.withDefault Hidden of
         Hidden ->
             div
-                [ style
+                [ class "column is-small"
+                , style
                     [ ( "width", "24px" )
                     , ( "height", "24px" )
                     , ( "margin", "1px" )
@@ -138,7 +140,8 @@ renderCell model row col =
 
         Visible mines ->
             div
-                [ style
+                [ class "column"
+                , style
                     [ ( "width", "24px" )
                     , ( "height", "24px" )
                     , ( "margin", "1px" )
@@ -159,7 +162,8 @@ renderCell model row col =
 
         Mine ->
             div
-                [ style
+                [ class "column"
+                , style
                     [ ( "width", "24px" )
                     , ( "height", "24px" )
                     , ( "margin", "1px" )
@@ -176,7 +180,8 @@ renderCell model row col =
 
         _ ->
             div
-                [ style
+                [ class "column"
+                , style
                     [ ( "width", "24px" )
                     , ( "height", "24px" )
                     , ( "margin", "1px" )
