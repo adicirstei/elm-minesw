@@ -9,12 +9,8 @@ import List.Extras as List
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model of
-        Playing _ ->
-            every second Tick
-
-        _ ->
-            Sub.none
+    every second Tick
+        |> Sub.map PlayMsg
 
 
 init : Int -> Int -> Int -> Model
@@ -25,13 +21,35 @@ init cols rows mines =
 
 update : Msg -> Model -> Model
 update msg model =
+    case msg of
+        PlayMsg m ->
+            playUpdate m model
+
+        GoMsg m ->
+            goUpdate m model
+
+
+goUpdate : GoMsg -> Model -> Model
+goUpdate msg model =
+    case model of
+        GameWon g ->
+            init g.cols g.rows g.minesCount
+
+        GameLost g ->
+            init g.cols g.rows g.minesCount
+
+        _ ->
+            model
+
+
+playUpdate : PlayMsg -> Model -> Model
+playUpdate msg model =
     case model of
         Playing g ->
             case msg of
                 Tick time ->
                     if g.mines == [] then
                         Playing { g | startTime = time }
-                            |> Debug.log "model and shit"
                     else
                         Playing { g | time = g.time + 1 }
 
@@ -47,21 +65,8 @@ update msg model =
                 CellFlagged cell ->
                     model
 
-        GameLost g ->
-            case msg of
-                Restart ->
-                    init g.cols g.rows g.minesCount
-
-                _ ->
-                    model
-
-        GameWon g ->
-            case msg of
-                Restart ->
-                    init g.cols g.rows g.minesCount
-
-                _ ->
-                    model
+        _ ->
+            model
 
 
 initMines model cell =

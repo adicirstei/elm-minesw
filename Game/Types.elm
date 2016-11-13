@@ -15,11 +15,20 @@ type CellState
     | Mine
 
 
-type Msg
+type PlayMsg
     = CellClicked Cell
     | CellFlagged Cell
     | Restart
     | Tick Time
+
+
+type GoMsg
+    = GoRestart
+
+
+type Msg
+    = PlayMsg PlayMsg
+    | GoMsg GoMsg
 
 
 type Model

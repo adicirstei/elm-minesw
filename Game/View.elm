@@ -6,6 +6,7 @@ import Html.Events exposing (onClick)
 import String exposing (padLeft)
 import Dict exposing (Dict)
 import Game.Types exposing (..)
+import Html.App
 
 
 root : Model -> Html Msg
@@ -13,10 +14,12 @@ root model =
     case model of
         Playing gm ->
             drawBoard gm
+                |> Html.App.map PlayMsg
 
         GameWon gm ->
             div []
                 [ drawBoard gm
+                    |> Html.App.map (\_ -> GoMsg GoRestart)
                 , div
                     [ style
                         [ ( "position", "absolute" )
@@ -32,7 +35,7 @@ root model =
 
         GameLost gm ->
             div []
-                [ drawBoard gm
+                [ drawBoard gm |> Html.App.map (\_ -> GoMsg GoRestart)
                 , div
                     [ style
                         [ ( "position", "absolute" )
@@ -47,6 +50,7 @@ root model =
                 ]
 
 
+drawBoard : GameData -> Html PlayMsg
 drawBoard gm =
     div
         [ style
