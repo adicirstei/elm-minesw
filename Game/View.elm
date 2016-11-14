@@ -1,11 +1,6 @@
 module Game.View exposing (root)
 
 import Html exposing (Html)
-
-
---import Html.Attributes exposing (..)
---import Html.Events exposing (onClick)
-
 import String exposing (padLeft)
 import Dict exposing (Dict)
 import Game.Types exposing (..)
@@ -14,12 +9,9 @@ import Svg.Attributes exposing (..)
 import Svg.Events exposing (onClick)
 
 
---import Svg.Attributes exposing (..)
-
-
 root : Model -> Html Msg
 root model =
-    svg [ width "640", height "480" ]
+    svg [ viewBox "0 0 100 111", width "70%" ]
         (case model of
             Playing gm ->
                 [ drawBoard gm
@@ -42,129 +34,40 @@ root model =
         )
 
 
-
---
--- root9 : Model -> Html Msg
--- root9 model =
---     case model of
---         Playing gm ->
---             drawBoard gm
---                 |> Html.App.map PlayMsg
---
---         GameWon gm ->
---             div []
---                 [ drawBoard gm
---                     |> Html.App.map (\_ -> GoMsg GoRestart)
---                 , div
---                     [ style
---                         [ ( "position", "absolute" )
---                         , ( "top", "100px" )
---                         , ( "left", "50px" )
---                         , ( "font-size", "64px" )
---                         , ( "padding", "24px" )
---                         , ( "background", "yellow" )
---                         ]
---                     ]
---                     [ text "Victory!" ]
---                 ]
---
---         GameLost gm ->
---             div []
---                 [ drawBoard gm |> Html.App.map (\_ -> GoMsg GoRestart)
---                 , div
---                     [ style
---                         [ ( "position", "absolute" )
---                         , ( "top", "100px" )
---                         , ( "left", "50px" )
---                         , ( "font-size", "64px" )
---                         , ( "padding", "24px" )
---                         , ( "background", "yellow" )
---                         ]
---                     ]
---                     [ text "You lost!" ]
---                 ]
-
-
 drawBoard : GameData -> Html PlayMsg
 drawBoard gm =
-    rect
-        [ x "0", y "0", width "640", height "480" ]
-        [ rect
-            [ fill "black", x "0", y "0", width "640", height "48" ]
-            [ rect
-                [ x "0", y "0", width "64", height "48", stroke "red" ]
-                [ text (gm.minesCount |> format) ]
-            , rect
+    g
+        [ x "0", y "0", width "100", height "10" ]
+        [ g
+            []
+            [ g
+                []
+                [ rect [ x "0", y "0", width "20", height "10", fill "black" ] []
+                , text_ [ fill "red", fontSize "7", x "0", y "8" ] [ text (gm.minesCount |> format) ]
+                ]
+            , g
                 [ onClick Restart
                 ]
-                [ text ":-)" ]
-            , rect
-                [ x "500", y "0", width "64", height "48", stroke "red" ]
-                [ text (format gm.time) ]
+                [ rect
+                    [ x "40"
+                    , y "0"
+                    , width "20"
+                    , height "10"
+                    , fill "yellow"
+                    ]
+                    []
+                , text_ [ fill "red", fontSize "7", x "40", y "8" ] [ text ":-)" ]
+                ]
+            , g
+                []
+                [ rect [ x "80", y "0", width "20", height "10", fill "black" ] []
+                , text_ [ fill "red", fontSize "7", x "80", y "8" ] [ text (format gm.time) ]
+                ]
             ]
-        , rect
-            [ class "grid"
-            ]
+        , g
+            []
             (renderGrid gm)
         ]
-
-
-
---
---
--- drawBoard : GameData -> Html PlayMsg
--- drawBoard gm =
---     div
---         [ style
---             [ ( "font-family", "monospace" )
---             , ( "font-size", "24px" )
---             , ( "width", "-webkit-min-content" )
---             , ( "width", "-moz-min-content" )
---             , ( "width", "min-content" )
---             ]
---         ]
---         [ div
---             [ class "header"
---             , style [ ( "width", "100%" ), ( "background", "#222" ) ]
---             ]
---             [ div
---                 [ style
---                     [ ( "float", "left" )
---                     , ( "color", "red" )
---                     , ( "width", "33.3333%" )
---                     ]
---                 ]
---                 [ text (gm.minesCount |> format) ]
---             , div
---                 [ style
---                     [ ( "color", "black" )
---                     , ( "background", "yellow" )
---                     , ( "width", "48px" )
---                     , ( "margin", "0 auto" )
---                     ]
---                 , onClick Restart
---                 ]
---                 [ text ":-)" ]
---             , div
---                 [ style
---                     [ ( "float", "right" )
---                     , ( "color", "red" )
---                     , ( "width", "33.3333%" )
---                     , ( "text-align", "right" )
---                     ]
---                 ]
---                 [ text (format gm.time) ]
---             ]
---         , div
---             [ class "grid"
---             , style
---                 [ ( "background-color", "white" )
---                 , ( "font-size", "16px" )
---                 , ( "clear", "both" )
---                 ]
---             ]
---             (renderGrid gm)
---         ]
 
 
 renderGrid model =
@@ -172,137 +75,74 @@ renderGrid model =
 
 
 renderRow model row =
-    rect
-        [ class "columns is-gapless is-small"
-          -- style
-          --     [ ( "height", "28px" )
-          --     , ( "clear", "both" )
-          --     , ( "display", "inline-flex" )
-          --     ]
-        ]
+    g
+        []
         (List.range 0 (model.cols - 1) |> List.map (renderCell model row))
 
 
 renderCell model row col =
-    case Dict.get ( row, col ) model.grid |> Maybe.withDefault Hidden of
-        Hidden ->
-            rect
-                [ onClick (CellClicked ( row, col ))
-                ]
-                []
+    let
+        cellSize =
+            100.0 / (toFloat model.cols)
+    in
+        case Dict.get ( row, col ) model.grid |> Maybe.withDefault Hidden of
+            Hidden ->
+                rect
+                    [ onClick (CellClicked ( row, col ))
+                    , width (toString cellSize)
+                    , height (toString cellSize)
+                    , fill "grey"
+                    , stroke "white"
+                    , strokeWidth "0.1"
+                    , x <| toString (toFloat col * cellSize)
+                    , y <| toString (toFloat row * cellSize + 11.0)
+                    ]
+                    []
 
-        Visible mines ->
-            rect
-                [ class "column"
-                , width "24"
-                , height "24"
-                ]
-                [ if mines == 0 then
-                    text ""
-                  else
-                    text (toString mines)
-                ]
+            Visible mines ->
+                g
+                    []
+                    [ rect
+                        [ width (toString cellSize)
+                        , height (toString cellSize)
+                        , fill "white"
+                        , stroke "white"
+                        , strokeWidth "0.1"
+                        , x <| toString (toFloat col * cellSize)
+                        , y <| toString (toFloat row * cellSize + 11.0)
+                        ]
+                        []
+                    , text_
+                        [ fill (color mines)
+                        , fontSize (toString (cellSize * 0.5))
+                        , textAnchor "middle"
+                        , x <| toString (toFloat col * cellSize + 5)
+                        , y <| toString (toFloat row * cellSize + 16.0)
+                        , dy "0.3em"
+                        ]
+                        [ if mines == 0 then
+                            text ""
+                          else
+                            text (toString mines)
+                        ]
+                    ]
 
-        Mine ->
-            rect
-                [ class "column"
-                , width "24"
-                , height "24"
-                ]
-                [ text "*"
-                ]
+            Mine ->
+                rect
+                    [ width "10"
+                    , height "10"
+                    , fill "red"
+                    , stroke "white"
+                    , x <| toString (toFloat col * cellSize)
+                    , y <| toString (toFloat row * cellSize + 11.0)
+                    ]
+                    [ text "*"
+                    ]
 
-        _ ->
-            rect
-                [ class "column"
-                , width "24"
-                , height "24"
-                ]
-                []
-
-
-
--- renderRow model row =
---     div
---         [ class "columns is-gapless is-small"
---           -- style
---           --     [ ( "height", "28px" )
---           --     , ( "clear", "both" )
---           --     , ( "display", "inline-flex" )
---           --     ]
---         ]
---         ([0..model.cols - 1] |> List.map (renderCell model row))
---
---
--- renderCell model row col =
---     case Dict.get ( row, col ) model.grid |> Maybe.withDefault Hidden of
---         Hidden ->
---             div
---                 [ class "column is-small"
---                 , style
---                     [ ( "width", "24px" )
---                     , ( "height", "24px" )
---                     , ( "margin", "1px" )
---                     , ( "display", "inline-block" )
---                     , ( "background-color", "gray" )
---                     , ( "border", "1px solid #333" )
---                     ]
---                 , onClick (CellClicked ( row, col ))
---                 ]
---                 []
---
---         Visible mines ->
---             div
---                 [ class "column"
---                 , style
---                     [ ( "width", "24px" )
---                     , ( "height", "24px" )
---                     , ( "margin", "1px" )
---                     , ( "display", "inline-block" )
---                     , ( "background-color", "lightgray" )
---                     , ( "vertical-align", "top" )
---                     , ( "border", "1px solid lightgray" )
---                     , ( "color", color mines )
---                     , ( "font-weight", "bold" )
---                     , ( "text-align", "center" )
---                     ]
---                 ]
---                 [ if mines == 0 then
---                     text ""
---                   else
---                     text (toString mines)
---                 ]
---
---         Mine ->
---             div
---                 [ class "column"
---                 , style
---                     [ ( "width", "24px" )
---                     , ( "height", "24px" )
---                     , ( "margin", "1px" )
---                     , ( "display", "inline-block" )
---                     , ( "background-color", "red" )
---                     , ( "vertical-align", "top" )
---                     , ( "border", "1px solid darkred" )
---                     , ( "font-weight", "bold" )
---                     , ( "text-align", "center" )
---                     ]
---                 ]
---                 [ text "*"
---                 ]
---
---         _ ->
---             div
---                 [ class "column"
---                 , style
---                     [ ( "width", "24px" )
---                     , ( "height", "24px" )
---                     , ( "margin", "1px" )
---                     , ( "display", "inline-block" )
---                     , ( "background-color", "gray" )
---                     ]
---                 ]
---                 []
+            _ ->
+                g
+                    []
+                    []
 
 
 format =
