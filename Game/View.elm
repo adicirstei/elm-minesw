@@ -9,7 +9,6 @@ import Html exposing (Html)
 import String exposing (padLeft)
 import Dict exposing (Dict)
 import Game.Types exposing (..)
-import Html.App
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Svg.Events exposing (onClick)
@@ -24,18 +23,18 @@ root model =
         (case model of
             Playing gm ->
                 [ drawBoard gm
-                    |> Html.App.map PlayMsg
+                    |> Html.map PlayMsg
                 ]
 
             GameWon gm ->
                 [ drawBoard gm
-                    |> Html.App.map (\_ -> GoMsg GoRestart)
+                    |> Html.map (\_ -> GoMsg GoRestart)
                 , rect []
                     [ text "Victory!" ]
                 ]
 
             GameLost gm ->
-                [ drawBoard gm |> Html.App.map (\_ -> GoMsg GoRestart)
+                [ drawBoard gm |> Html.map (\_ -> GoMsg GoRestart)
                 , rect
                     []
                     [ text "You lost!" ]
@@ -169,7 +168,7 @@ drawBoard gm =
 
 
 renderGrid model =
-    ([0..model.rows - 1] |> List.map (renderRow model))
+    (List.range 0 (model.rows - 1) |> List.map (renderRow model))
 
 
 renderRow model row =
@@ -181,7 +180,7 @@ renderRow model row =
           --     , ( "display", "inline-flex" )
           --     ]
         ]
-        ([0..model.cols - 1] |> List.map (renderCell model row))
+        (List.range 0 (model.cols - 1) |> List.map (renderCell model row))
 
 
 renderCell model row col =

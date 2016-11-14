@@ -101,7 +101,7 @@ randomMines cell model seed =
                             |> List.map (\idx -> ( idx // model.cols, idx % model.cols ))
                     )
     in
-        Random.step gen seed |> fst
+        Random.step gen seed |> Tuple.first
 
 
 getNeighbours model cell =
@@ -167,7 +167,7 @@ wonLostContinue gm =
 
 
 initDict cols rows =
-    [0..rows - 1]
-        |> List.map (\r -> [0..cols - 1] |> List.map (\c -> ( ( r, c ), Hidden )))
+    List.range 0 (rows - 1)
+        |> List.map (\r -> List.range 0 (cols - 1) |> List.map (\c -> ( ( r, c ), Hidden )))
         |> List.concat
         |> Dict.fromList

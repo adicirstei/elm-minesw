@@ -1,6 +1,5 @@
 module View exposing (rootView)
 
-import Html.App
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Types exposing (..)
@@ -28,9 +27,9 @@ rootView model =
 
 startScreenView =
     StartScreen.View.root ()
-        |> Html.App.map StartScreenMsg
+        |> Html.map StartScreenMsg
 
 
 gameView model =
     Game.View.root model
-        |> Html.App.map GameMsg
+        |> Html.map GameMsg
