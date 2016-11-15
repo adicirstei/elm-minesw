@@ -11,7 +11,7 @@ import Svg.Events exposing (onClick)
 
 root : Model -> Html Msg
 root model =
-    svg [ viewBox "0 0 100 111", width "70%" ]
+    svg [ viewBox "0 0 100 111", width "50%" ]
         (case model of
             Playing gm ->
                 [ drawBoard gm
@@ -21,15 +21,36 @@ root model =
             GameWon gm ->
                 [ drawBoard gm
                     |> Html.map (\_ -> GoMsg GoRestart)
-                , rect []
-                    [ text "Victory!" ]
+                , g
+                    []
+                    [ rect [ x "20", y "40", width "60", height "20", fill "yellow" ] []
+                    , text_
+                        [ fill "red"
+                        , fontSize "14"
+                        , x "50"
+                        , y "50"
+                        , textAnchor "middle"
+                        , alignmentBaseline "central"
+                        ]
+                        [ text "Victory!" ]
+                    ]
                 ]
 
             GameLost gm ->
                 [ drawBoard gm |> Html.map (\_ -> GoMsg GoRestart)
-                , rect
+                , g
                     []
-                    [ text "You lost!" ]
+                    [ rect [ x "20", y "40", width "60", height "20", fill "yellow" ] []
+                    , text_
+                        [ fill "red"
+                        , fontSize "14"
+                        , x "50"
+                        , y "50"
+                        , textAnchor "middle"
+                        , alignmentBaseline "central"
+                        ]
+                        [ text "You lost!" ]
+                    ]
                 ]
         )
 
@@ -43,7 +64,15 @@ drawBoard gm =
             [ g
                 []
                 [ rect [ x "0", y "0", width "20", height "10", fill "black" ] []
-                , text_ [ fill "red", fontSize "7", x "0", y "8" ] [ text (gm.minesCount |> format) ]
+                , text_
+                    [ fill "red"
+                    , fontSize "7"
+                    , x "10"
+                    , y "5"
+                    , textAnchor "middle"
+                    , alignmentBaseline "central"
+                    ]
+                    [ text (gm.minesCount |> format) ]
                 ]
             , g
                 [ onClick Restart
@@ -56,12 +85,28 @@ drawBoard gm =
                     , fill "yellow"
                     ]
                     []
-                , text_ [ fill "red", fontSize "7", x "40", y "8" ] [ text ":-)" ]
+                , text_
+                    [ fill "red"
+                    , fontSize "7"
+                    , x "50"
+                    , y "5"
+                    , textAnchor "middle"
+                    , alignmentBaseline "central"
+                    ]
+                    [ text ":-)" ]
                 ]
             , g
                 []
                 [ rect [ x "80", y "0", width "20", height "10", fill "black" ] []
-                , text_ [ fill "red", fontSize "7", x "80", y "8" ] [ text (format gm.time) ]
+                , text_
+                    [ fill "red"
+                    , fontSize "7"
+                    , x "90"
+                    , y "5"
+                    , textAnchor "middle"
+                    , alignmentBaseline "central"
+                    ]
+                    [ text (format gm.time) ]
                 ]
             ]
         , g
@@ -116,9 +161,9 @@ renderCell model row col =
                         [ fill (color mines)
                         , fontSize (toString (cellSize * 0.5))
                         , textAnchor "middle"
-                        , x <| toString (toFloat col * cellSize + 5)
-                        , y <| toString (toFloat row * cellSize + 16.0)
-                        , dy "0.3em"
+                        , alignmentBaseline "central"
+                        , x <| toString (toFloat col * cellSize + cellSize / 2.0)
+                        , y <| toString (toFloat row * cellSize + cellSize / 2.0 + 11.0)
                         ]
                         [ if mines == 0 then
                             text ""
@@ -128,15 +173,25 @@ renderCell model row col =
                     ]
 
             Mine ->
-                rect
-                    [ width "10"
-                    , height "10"
-                    , fill "red"
-                    , stroke "white"
-                    , x <| toString (toFloat col * cellSize)
-                    , y <| toString (toFloat row * cellSize + 11.0)
-                    ]
-                    [ text "*"
+                g []
+                    [ rect
+                        [ width (toString cellSize)
+                        , height (toString cellSize)
+                        , strokeWidth "0.1"
+                        , fill "red"
+                        , stroke "white"
+                        , x <| toString (toFloat col * cellSize)
+                        , y <| toString (toFloat row * cellSize + 11.0)
+                        ]
+                        []
+                    , text_
+                        [ fontSize (toString (cellSize * 0.5))
+                        , textAnchor "middle"
+                        , alignmentBaseline "central"
+                        , x <| toString (toFloat col * cellSize + cellSize / 2.0)
+                        , y <| toString (toFloat row * cellSize + cellSize / 2.0 + 11.0)
+                        ]
+                        [ text "*" ]
                     ]
 
             _ ->

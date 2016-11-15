@@ -9726,6 +9726,7 @@ var _user$project$Game_View$format = function (_p1) {
 };
 var _user$project$Game_View$renderCell = F3(
 	function (model, row, col) {
+		var cellSize = 100.0 / _elm_lang$core$Basics$toFloat(model.cols);
 		var _p2 = A2(
 			_elm_lang$core$Maybe$withDefault,
 			_user$project$Game_Types$Hidden,
@@ -9742,81 +9743,226 @@ var _user$project$Game_View$renderCell = F3(
 						_0: _elm_lang$svg$Svg_Events$onClick(
 							_user$project$Game_Types$CellClicked(
 								{ctor: '_Tuple2', _0: row, _1: col})),
-						_1: {ctor: '[]'}
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$svg$Svg_Attributes$width(
+								_elm_lang$core$Basics$toString(cellSize)),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$svg$Svg_Attributes$height(
+									_elm_lang$core$Basics$toString(cellSize)),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$fill('grey'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$stroke('white'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$strokeWidth('0.1'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$x(
+													_elm_lang$core$Basics$toString(
+														_elm_lang$core$Basics$toFloat(col) * cellSize)),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$y(
+														_elm_lang$core$Basics$toString(
+															(_elm_lang$core$Basics$toFloat(row) * cellSize) + 11.0)),
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
 					},
 					{ctor: '[]'});
 			case 'Visible':
 				var _p3 = _p2._0;
 				return A2(
-					_elm_lang$svg$Svg$rect,
+					_elm_lang$svg$Svg$g,
+					{ctor: '[]'},
 					{
 						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$class('column'),
+						_0: A2(
+							_elm_lang$svg$Svg$rect,
+							{
+								ctor: '::',
+								_0: _elm_lang$svg$Svg_Attributes$width(
+									_elm_lang$core$Basics$toString(cellSize)),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$height(
+										_elm_lang$core$Basics$toString(cellSize)),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$fill('white'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$stroke('white'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$strokeWidth('0.1'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$x(
+														_elm_lang$core$Basics$toString(
+															_elm_lang$core$Basics$toFloat(col) * cellSize)),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$y(
+															_elm_lang$core$Basics$toString(
+																(_elm_lang$core$Basics$toFloat(row) * cellSize) + 11.0)),
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										}
+									}
+								}
+							},
+							{ctor: '[]'}),
 						_1: {
 							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$width('24'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$height('24'),
-								_1: {ctor: '[]'}
-							}
+							_0: A2(
+								_elm_lang$svg$Svg$text_,
+								{
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$fill(
+										_user$project$Game_View$color(_p3)),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$fontSize(
+											_elm_lang$core$Basics$toString(cellSize * 0.5)),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$textAnchor('middle'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$alignmentBaseline('central'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$x(
+														_elm_lang$core$Basics$toString(
+															(_elm_lang$core$Basics$toFloat(col) * cellSize) + (cellSize / 2.0))),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$y(
+															_elm_lang$core$Basics$toString(
+																((_elm_lang$core$Basics$toFloat(row) * cellSize) + (cellSize / 2.0)) + 11.0)),
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$core$Native_Utils.eq(_p3, 0) ? _elm_lang$svg$Svg$text('') : _elm_lang$svg$Svg$text(
+										_elm_lang$core$Basics$toString(_p3)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
 						}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$core$Native_Utils.eq(_p3, 0) ? _elm_lang$svg$Svg$text('') : _elm_lang$svg$Svg$text(
-							_elm_lang$core$Basics$toString(_p3)),
-						_1: {ctor: '[]'}
 					});
 			case 'Mine':
 				return A2(
-					_elm_lang$svg$Svg$rect,
+					_elm_lang$svg$Svg$g,
+					{ctor: '[]'},
 					{
 						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$class('column'),
+						_0: A2(
+							_elm_lang$svg$Svg$rect,
+							{
+								ctor: '::',
+								_0: _elm_lang$svg$Svg_Attributes$width(
+									_elm_lang$core$Basics$toString(cellSize)),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$height(
+										_elm_lang$core$Basics$toString(cellSize)),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$strokeWidth('0.1'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$fill('red'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$stroke('white'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$x(
+														_elm_lang$core$Basics$toString(
+															_elm_lang$core$Basics$toFloat(col) * cellSize)),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$y(
+															_elm_lang$core$Basics$toString(
+																(_elm_lang$core$Basics$toFloat(row) * cellSize) + 11.0)),
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										}
+									}
+								}
+							},
+							{ctor: '[]'}),
 						_1: {
 							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$width('24'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$height('24'),
-								_1: {ctor: '[]'}
-							}
+							_0: A2(
+								_elm_lang$svg$Svg$text_,
+								{
+									ctor: '::',
+									_0: _elm_lang$svg$Svg_Attributes$fontSize(
+										_elm_lang$core$Basics$toString(cellSize * 0.5)),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$textAnchor('middle'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$alignmentBaseline('central'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$x(
+													_elm_lang$core$Basics$toString(
+														(_elm_lang$core$Basics$toFloat(col) * cellSize) + (cellSize / 2.0))),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$y(
+														_elm_lang$core$Basics$toString(
+															((_elm_lang$core$Basics$toFloat(row) * cellSize) + (cellSize / 2.0)) + 11.0)),
+													_1: {ctor: '[]'}
+												}
+											}
+										}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$svg$Svg$text('*'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
 						}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$svg$Svg$text('*'),
-						_1: {ctor: '[]'}
 					});
 			default:
 				return A2(
-					_elm_lang$svg$Svg$rect,
-					{
-						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$class('column'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$width('24'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$height('24'),
-								_1: {ctor: '[]'}
-							}
-						}
-					},
+					_elm_lang$svg$Svg$g,
+					{ctor: '[]'},
 					{ctor: '[]'});
 		}
 	});
 var _user$project$Game_View$renderRow = F2(
 	function (model, row) {
 		return A2(
-			_elm_lang$svg$Svg$rect,
-			{
-				ctor: '::',
-				_0: _elm_lang$svg$Svg_Attributes$class('columns is-gapless is-small'),
-				_1: {ctor: '[]'}
-			},
+			_elm_lang$svg$Svg$g,
+			{ctor: '[]'},
 			A2(
 				_elm_lang$core$List$map,
 				A2(_user$project$Game_View$renderCell, model, row),
@@ -9830,7 +9976,7 @@ var _user$project$Game_View$renderGrid = function (model) {
 };
 var _user$project$Game_View$drawBoard = function (gm) {
 	return A2(
-		_elm_lang$svg$Svg$rect,
+		_elm_lang$svg$Svg$g,
 		{
 			ctor: '::',
 			_0: _elm_lang$svg$Svg_Attributes$x('0'),
@@ -9839,10 +9985,10 @@ var _user$project$Game_View$drawBoard = function (gm) {
 				_0: _elm_lang$svg$Svg_Attributes$y('0'),
 				_1: {
 					ctor: '::',
-					_0: _elm_lang$svg$Svg_Attributes$width('640'),
+					_0: _elm_lang$svg$Svg_Attributes$width('100'),
 					_1: {
 						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$height('480'),
+						_0: _elm_lang$svg$Svg_Attributes$height('10'),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -9851,63 +9997,81 @@ var _user$project$Game_View$drawBoard = function (gm) {
 		{
 			ctor: '::',
 			_0: A2(
-				_elm_lang$svg$Svg$rect,
-				{
-					ctor: '::',
-					_0: _elm_lang$svg$Svg_Attributes$fill('black'),
-					_1: {
-						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$x('0'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$y('0'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$width('640'),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$svg$Svg_Attributes$height('48'),
-									_1: {ctor: '[]'}
-								}
-							}
-						}
-					}
-				},
+				_elm_lang$svg$Svg$g,
+				{ctor: '[]'},
 				{
 					ctor: '::',
 					_0: A2(
-						_elm_lang$svg$Svg$rect,
+						_elm_lang$svg$Svg$g,
+						{ctor: '[]'},
 						{
 							ctor: '::',
-							_0: _elm_lang$svg$Svg_Attributes$x('0'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$svg$Svg_Attributes$y('0'),
-								_1: {
+							_0: A2(
+								_elm_lang$svg$Svg$rect,
+								{
 									ctor: '::',
-									_0: _elm_lang$svg$Svg_Attributes$width('64'),
+									_0: _elm_lang$svg$Svg_Attributes$x('0'),
 									_1: {
 										ctor: '::',
-										_0: _elm_lang$svg$Svg_Attributes$height('48'),
+										_0: _elm_lang$svg$Svg_Attributes$y('0'),
 										_1: {
 											ctor: '::',
-											_0: _elm_lang$svg$Svg_Attributes$stroke('red'),
-											_1: {ctor: '[]'}
+											_0: _elm_lang$svg$Svg_Attributes$width('20'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$height('10'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$fill('black'),
+													_1: {ctor: '[]'}
+												}
+											}
 										}
 									}
-								}
+								},
+								{ctor: '[]'}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$svg$Svg$text_,
+									{
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$fill('red'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$fontSize('7'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$x('10'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$y('5'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$textAnchor('middle'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$svg$Svg_Attributes$alignmentBaseline('central'),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										}
+									},
+									{
+										ctor: '::',
+										_0: _elm_lang$svg$Svg$text(
+											_user$project$Game_View$format(gm.minesCount)),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
 							}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$svg$Svg$text(
-								_user$project$Game_View$format(gm.minesCount)),
-							_1: {ctor: '[]'}
 						}),
 					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$svg$Svg$rect,
+							_elm_lang$svg$Svg$g,
 							{
 								ctor: '::',
 								_0: _elm_lang$svg$Svg_Events$onClick(_user$project$Game_Types$Restart),
@@ -9915,39 +10079,135 @@ var _user$project$Game_View$drawBoard = function (gm) {
 							},
 							{
 								ctor: '::',
-								_0: _elm_lang$svg$Svg$text(':-)'),
-								_1: {ctor: '[]'}
+								_0: A2(
+									_elm_lang$svg$Svg$rect,
+									{
+										ctor: '::',
+										_0: _elm_lang$svg$Svg_Attributes$x('40'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$y('0'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$width('20'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$height('10'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$fill('yellow'),
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										}
+									},
+									{ctor: '[]'}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$svg$Svg$text_,
+										{
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$fill('red'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$fontSize('7'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$x('50'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$y('5'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$svg$Svg_Attributes$textAnchor('middle'),
+															_1: {
+																ctor: '::',
+																_0: _elm_lang$svg$Svg_Attributes$alignmentBaseline('central'),
+																_1: {ctor: '[]'}
+															}
+														}
+													}
+												}
+											}
+										},
+										{
+											ctor: '::',
+											_0: _elm_lang$svg$Svg$text(':-)'),
+											_1: {ctor: '[]'}
+										}),
+									_1: {ctor: '[]'}
+								}
 							}),
 						_1: {
 							ctor: '::',
 							_0: A2(
-								_elm_lang$svg$Svg$rect,
+								_elm_lang$svg$Svg$g,
+								{ctor: '[]'},
 								{
 									ctor: '::',
-									_0: _elm_lang$svg$Svg_Attributes$x('500'),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$svg$Svg_Attributes$y('0'),
-										_1: {
+									_0: A2(
+										_elm_lang$svg$Svg$rect,
+										{
 											ctor: '::',
-											_0: _elm_lang$svg$Svg_Attributes$width('64'),
+											_0: _elm_lang$svg$Svg_Attributes$x('80'),
 											_1: {
 												ctor: '::',
-												_0: _elm_lang$svg$Svg_Attributes$height('48'),
+												_0: _elm_lang$svg$Svg_Attributes$y('0'),
 												_1: {
 													ctor: '::',
-													_0: _elm_lang$svg$Svg_Attributes$stroke('red'),
-													_1: {ctor: '[]'}
+													_0: _elm_lang$svg$Svg_Attributes$width('20'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$height('10'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$svg$Svg_Attributes$fill('black'),
+															_1: {ctor: '[]'}
+														}
+													}
 												}
 											}
-										}
+										},
+										{ctor: '[]'}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$svg$Svg$text_,
+											{
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$fill('red'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$fontSize('7'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$x('90'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$svg$Svg_Attributes$y('5'),
+															_1: {
+																ctor: '::',
+																_0: _elm_lang$svg$Svg_Attributes$textAnchor('middle'),
+																_1: {
+																	ctor: '::',
+																	_0: _elm_lang$svg$Svg_Attributes$alignmentBaseline('central'),
+																	_1: {ctor: '[]'}
+																}
+															}
+														}
+													}
+												}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$svg$Svg$text(
+													_user$project$Game_View$format(gm.time)),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
 									}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$svg$Svg$text(
-										_user$project$Game_View$format(gm.time)),
-									_1: {ctor: '[]'}
 								}),
 							_1: {ctor: '[]'}
 						}
@@ -9956,12 +10216,8 @@ var _user$project$Game_View$drawBoard = function (gm) {
 			_1: {
 				ctor: '::',
 				_0: A2(
-					_elm_lang$svg$Svg$rect,
-					{
-						ctor: '::',
-						_0: _elm_lang$svg$Svg_Attributes$class('grid'),
-						_1: {ctor: '[]'}
-					},
+					_elm_lang$svg$Svg$g,
+					{ctor: '[]'},
 					_user$project$Game_View$renderGrid(gm)),
 				_1: {ctor: '[]'}
 			}
@@ -9972,10 +10228,10 @@ var _user$project$Game_View$root = function (model) {
 		_elm_lang$svg$Svg$svg,
 		{
 			ctor: '::',
-			_0: _elm_lang$svg$Svg_Attributes$width('640'),
+			_0: _elm_lang$svg$Svg_Attributes$viewBox('0 0 100 111'),
 			_1: {
 				ctor: '::',
-				_0: _elm_lang$svg$Svg_Attributes$height('480'),
+				_0: _elm_lang$svg$Svg_Attributes$width('50%'),
 				_1: {ctor: '[]'}
 			}
 		},
@@ -10003,12 +10259,70 @@ var _user$project$Game_View$root = function (model) {
 						_1: {
 							ctor: '::',
 							_0: A2(
-								_elm_lang$svg$Svg$rect,
+								_elm_lang$svg$Svg$g,
 								{ctor: '[]'},
 								{
 									ctor: '::',
-									_0: _elm_lang$svg$Svg$text('Victory!'),
-									_1: {ctor: '[]'}
+									_0: A2(
+										_elm_lang$svg$Svg$rect,
+										{
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$x('20'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$y('40'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$width('60'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$height('20'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$svg$Svg_Attributes$fill('yellow'),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										},
+										{ctor: '[]'}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$svg$Svg$text_,
+											{
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$fill('red'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$fontSize('14'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$x('50'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$svg$Svg_Attributes$y('50'),
+															_1: {
+																ctor: '::',
+																_0: _elm_lang$svg$Svg_Attributes$textAnchor('middle'),
+																_1: {
+																	ctor: '::',
+																	_0: _elm_lang$svg$Svg_Attributes$alignmentBaseline('central'),
+																	_1: {ctor: '[]'}
+																}
+															}
+														}
+													}
+												}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$svg$Svg$text('Victory!'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
 								}),
 							_1: {ctor: '[]'}
 						}
@@ -10025,12 +10339,70 @@ var _user$project$Game_View$root = function (model) {
 						_1: {
 							ctor: '::',
 							_0: A2(
-								_elm_lang$svg$Svg$rect,
+								_elm_lang$svg$Svg$g,
 								{ctor: '[]'},
 								{
 									ctor: '::',
-									_0: _elm_lang$svg$Svg$text('You lost!'),
-									_1: {ctor: '[]'}
+									_0: A2(
+										_elm_lang$svg$Svg$rect,
+										{
+											ctor: '::',
+											_0: _elm_lang$svg$Svg_Attributes$x('20'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$y('40'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$width('60'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$height('20'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$svg$Svg_Attributes$fill('yellow'),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										},
+										{ctor: '[]'}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$svg$Svg$text_,
+											{
+												ctor: '::',
+												_0: _elm_lang$svg$Svg_Attributes$fill('red'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$svg$Svg_Attributes$fontSize('14'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$svg$Svg_Attributes$x('50'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$svg$Svg_Attributes$y('50'),
+															_1: {
+																ctor: '::',
+																_0: _elm_lang$svg$Svg_Attributes$textAnchor('middle'),
+																_1: {
+																	ctor: '::',
+																	_0: _elm_lang$svg$Svg_Attributes$alignmentBaseline('central'),
+																	_1: {ctor: '[]'}
+																}
+															}
+														}
+													}
+												}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$svg$Svg$text('You lost!'),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
 								}),
 							_1: {ctor: '[]'}
 						}
