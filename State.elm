@@ -49,10 +49,10 @@ processStartScreenMsg : SST.Msg -> Types.Model
 processStartScreenMsg msg =
     case msg of
         SST.StartBeginner ->
-            Game (Game.State.init 8 8 10)
+            Game (Game.State.init 9 7 10)
 
         SST.StartIntermediate ->
-            Game (Game.State.init 16 16 40)
+            Game (Game.State.init 20 12 40)
 
         SST.StartAdvanced ->
             Game (Game.State.init 30 20 99)

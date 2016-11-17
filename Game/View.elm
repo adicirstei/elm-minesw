@@ -11,7 +11,7 @@ import Svg.Events exposing (onClick)
 
 root : Model -> Html Msg
 root model =
-    svg [ viewBox "0 0 100 111", width "50%" ]
+    svg [ viewBox "0 0 100 111", width "60%" ]
         (case model of
             Playing gm ->
                 [ drawBoard gm
