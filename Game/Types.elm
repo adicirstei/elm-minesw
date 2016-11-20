@@ -20,6 +20,7 @@ type PlayMsg
     | CellFlagged Cell
     | Restart
     | Tick Time
+    | SwitchMode
 
 
 type GoMsg
@@ -46,4 +47,5 @@ type alias GameData =
     , minesCount : Int
     , time : Int
     , startTime : Time
+    , cellMsg : Cell -> PlayMsg
     }

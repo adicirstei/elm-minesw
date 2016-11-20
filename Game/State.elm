@@ -15,7 +15,7 @@ subscriptions model =
 
 init : Int -> Int -> Int -> Model
 init cols rows mines =
-    GameData (initDict cols rows) cols rows 0 [] mines 0 0
+    GameData (initDict cols rows) cols rows 0 [] mines 0 0 CellClicked
         |> Playing
 
 
@@ -62,11 +62,21 @@ playUpdate msg model =
                 Restart ->
                     init g.cols g.rows g.minesCount
 
+                SwitchMode ->
+                    Playing { g | cellMsg = flip g.cellMsg }
+
                 CellFlagged cell ->
-                    model
+                    Playing { g | grid = Dict.insert cell Flagged g.grid }
 
         _ ->
             model
+
+
+flip fn =
+    if fn == CellClicked then
+        CellFlagged
+    else
+        CellClicked
 
 
 initMines model cell =

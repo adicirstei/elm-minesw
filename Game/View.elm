@@ -75,7 +75,7 @@ drawBoard gm =
                     [ text (gm.minesCount |> format) ]
                 ]
             , g
-                [ onClick Restart
+                [ onClick SwitchMode
                 ]
                 [ rect
                     [ x "40"
@@ -93,7 +93,13 @@ drawBoard gm =
                     , textAnchor "middle"
                     , alignmentBaseline "central"
                     ]
-                    [ text ":-)" ]
+                    [ (if gm.cellMsg == CellClicked then
+                        ":-)"
+                       else
+                        "|>"
+                      )
+                        |> text
+                    ]
                 ]
             , g
                 []
@@ -133,7 +139,7 @@ renderCell model row col =
         case Dict.get ( row, col ) model.grid |> Maybe.withDefault Hidden of
             Hidden ->
                 rect
-                    [ onClick (CellClicked ( row, col ))
+                    [ onClick (model.cellMsg ( row, col ))
                     , width (toString cellSize)
                     , height (toString cellSize)
                     , fill "grey"
@@ -194,9 +200,17 @@ renderCell model row col =
                         [ text "*" ]
                     ]
 
-            _ ->
-                g
-                    []
+            Flagged ->
+                rect
+                    [ onClick (model.cellMsg ( row, col ))
+                    , width (toString cellSize)
+                    , height (toString cellSize)
+                    , fill "darkgreen"
+                    , stroke "white"
+                    , strokeWidth "0.1"
+                    , x <| toString (toFloat col * cellSize)
+                    , y <| toString (toFloat row * cellSize + 11.0)
+                    ]
                     []
 
 
