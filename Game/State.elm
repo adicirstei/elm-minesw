@@ -26,14 +26,18 @@ init cols rows mines d =
         |> Playing
 
 
-update : Msg -> Model -> Model
-update msg model =
-    case msg of
-        PlayMsg m ->
-            playUpdate m model
 
-        GoMsg m ->
-            goUpdate m model
+--
+-- update : Msg -> Model -> Model
+-- update msg model =
+--     case msg of
+--         PlayMsg m ->
+--             playUpdate m model
+--
+--         GoMsg m ->
+--             goUpdate m model
+--
+--
 
 
 goUpdate : GoMsg -> Model -> Model
@@ -49,7 +53,7 @@ goUpdate msg model =
             model
 
 
-playUpdate : PlayMsg -> Model -> Model
+playUpdate : PlayMsg -> GameData -> GameData
 playUpdate msg model =
     case model of
         Playing g ->
