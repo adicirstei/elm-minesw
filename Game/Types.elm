@@ -18,13 +18,12 @@ type CellState
 type PlayMsg
     = CellClicked Cell
     | CellFlagged Cell
-    | Restart
     | Tick Time
     | SwitchMode
 
 
 type GoMsg
-    = GoRestart
+    = GoRestart Dificulty
 
 
 type Msg
@@ -38,6 +37,12 @@ type Model
     | GameLost GameData
 
 
+type Dificulty
+    = Beginner
+    | Intermediate
+    | Advanced
+
+
 type alias GameData =
     { grid : Dict Cell CellState
     , cols : Int
@@ -48,4 +53,5 @@ type alias GameData =
     , time : Int
     , startTime : Time
     , cellMsg : Cell -> PlayMsg
+    , dificulty : Dificulty
     }

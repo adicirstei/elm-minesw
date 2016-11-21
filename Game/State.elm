@@ -5,6 +5,13 @@ import Game.Types exposing (..)
 import Dict
 import Random
 import List.Extras as List
+import Task
+
+
+restart : Dificulty -> Cmd GoMsg
+restart d =
+    Task.succeed ()
+        |> Task.perform (\_ -> GoRestart d)
 
 
 subscriptions : Model -> Sub Msg
@@ -13,9 +20,9 @@ subscriptions model =
         |> Sub.map PlayMsg
 
 
-init : Int -> Int -> Int -> Model
-init cols rows mines =
-    GameData (initDict cols rows) cols rows 0 [] mines 0 0 CellClicked
+init : Int -> Int -> Int -> Dificulty -> Model
+init cols rows mines d =
+    GameData (initDict cols rows) cols rows 0 [] mines 0 0 CellClicked d
         |> Playing
 
 
@@ -58,9 +65,6 @@ playUpdate msg model =
                         |> initMines g
                         |> updateGrid cell
                         |> wonLostContinue
-
-                Restart ->
-                    init g.cols g.rows g.minesCount
 
                 SwitchMode ->
                     Playing { g | cellMsg = flip g.cellMsg }
