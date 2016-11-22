@@ -11,5 +11,4 @@ type Model
 
 type Msg
     = StartScreenMsg StartScreen.Types.Msg
-    | GoMsg Game.Types.GoMsg
-    | GameMsg Game.Types.PlayMsg
+    | GameMsg Game.Types.Msg

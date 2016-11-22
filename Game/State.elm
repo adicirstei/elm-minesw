@@ -8,83 +8,95 @@ import List.Extras as List
 import Task
 
 
-restart : Dificulty -> Cmd GoMsg
-restart d =
+winCmd : GameData -> Cmd Msg
+winCmd data =
     Task.succeed ()
-        |> Task.perform (\_ -> GoRestart d)
+        |> Task.perform (\_ -> Won data)
+
+
+lostCmd : GameData -> Cmd Msg
+lostCmd data =
+    Task.succeed ()
+        |> Task.perform (\_ -> Lost data)
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    every second Tick
-        |> Sub.map PlayMsg
+    case model of
+        Playing _ ->
+            every second Tick
+                |> Sub.map PlayMsg
+
+        _ ->
+            Sub.none
 
 
 init : Int -> Int -> Int -> Dificulty -> Model
 init cols rows mines d =
-    GameData (initDict cols rows) cols rows 0 [] mines 0 0 CellClicked d
+    GameData (initDict cols rows) cols rows 0 [] mines 0 0 CellClicked d Dig
         |> Playing
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case ( msg, model ) of
+        ( PlayMsg m, Playing gd ) ->
+            playUpdate m gd
+                |> (\( gd, cmd ) -> ( Playing gd, cmd ))
 
---
--- update : Msg -> Model -> Model
--- update msg model =
---     case msg of
---         PlayMsg m ->
---             playUpdate m model
---
---         GoMsg m ->
---             goUpdate m model
---
---
+        ( Won gd, _ ) ->
+            GameWon gd ! []
 
-
-goUpdate : GoMsg -> Model -> Model
-goUpdate msg model =
-    case model of
-        GameWon g ->
-            init g.cols g.rows g.minesCount
-
-        GameLost g ->
-            init g.cols g.rows g.minesCount
+        ( Lost gd, _ ) ->
+            GameLost gd ! []
 
         _ ->
-            model
+            model ! []
 
 
-playUpdate : PlayMsg -> GameData -> GameData
-playUpdate msg model =
-    case model of
-        Playing g ->
-            case msg of
-                Tick time ->
-                    if g.mines == [] then
-                        Playing { g | startTime = time }
+playUpdate : PlayMsg -> GameData -> ( GameData, Cmd Msg )
+playUpdate msg data =
+    case msg of
+        Tick time ->
+            if data.mines == [] then
+                { data | startTime = time } ! []
+            else
+                { data | time = data.time + 1 } ! []
+
+        CellClicked cell ->
+            cell
+                |> initMines data
+                |> updateGrid cell
+                |> wonLostContinue
+
+        SwitchMode ->
+            let
+                ( nextMode, cb ) =
+                    if data.mode == Dig then
+                        ( Flag, CellFlagged )
                     else
-                        Playing { g | time = g.time + 1 }
+                        ( Dig, CellClicked )
+            in
+                { data | cellMsg = cb, mode = nextMode } ! []
 
-                CellClicked cell ->
-                    cell
-                        |> initMines g
-                        |> updateGrid cell
-                        |> wonLostContinue
+        CellFlagged cell ->
+            let
+                c =
+                    Dict.get cell data.grid |> Maybe.withDefault Hidden
 
-                SwitchMode ->
-                    Playing { g | cellMsg = flip g.cellMsg }
-
-                CellFlagged cell ->
-                    Playing { g | grid = Dict.insert cell Flagged g.grid }
-
-        _ ->
-            model
-
-
-flip fn =
-    if fn == CellClicked then
-        CellFlagged
-    else
-        CellClicked
+                ( newState, counter ) =
+                    if c == Flagged then
+                        ( Hidden, 1 )
+                    else if data.minesCount == 0 then
+                        ( c, 0 )
+                    else
+                        ( Flagged, -1 )
+            in
+                { data
+                    | grid = Dict.insert cell newState data.grid
+                    , minesCount = data.minesCount + counter
+                }
+                    ! []
 
 
 initMines model cell =
@@ -177,11 +189,11 @@ wonLostContinue gm =
             Dict.filter (\_ v -> v == Mine) gm.grid
     in
         if Dict.size mines > 0 then
-            GameLost gm
+            ( gm, lostCmd gm )
         else if Dict.size flagsOrHidden == List.length gm.mines then
-            GameWon gm
+            ( gm, winCmd gm )
         else
-            Playing gm
+            gm ! []
 
 
 initDict cols rows =

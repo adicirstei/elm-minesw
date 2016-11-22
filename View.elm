@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Types exposing (..)
 import StartScreen.View
 import Game.View
+import Game.Types
 
 
 rootView : Model -> Html Msg

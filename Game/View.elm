@@ -20,7 +20,7 @@ root model =
 
             GameWon gm ->
                 [ drawBoard gm
-                    |> Html.map (\_ -> GoMsg GoRestart)
+                    |> Html.map (\_ -> GoMsg (GoRestart gm.dificulty))
                 , g
                     []
                     [ rect [ x "20", y "40", width "60", height "20", fill "yellow" ] []
@@ -37,7 +37,7 @@ root model =
                 ]
 
             GameLost gm ->
-                [ drawBoard gm |> Html.map (\_ -> GoMsg GoRestart)
+                [ drawBoard gm |> Html.map (\_ -> GoMsg (GoRestart gm.dificulty))
                 , g
                     []
                     [ rect [ x "20", y "40", width "60", height "20", fill "yellow" ] []
@@ -93,7 +93,7 @@ drawBoard gm =
                     , textAnchor "middle"
                     , alignmentBaseline "central"
                     ]
-                    [ (if gm.cellMsg == CellClicked then
+                    [ (if gm.mode == Dig then
                         ":-)"
                        else
                         "|>"

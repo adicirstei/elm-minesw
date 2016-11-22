@@ -15,6 +15,11 @@ type CellState
     | Mine
 
 
+type Mode
+    = Flag
+    | Dig
+
+
 type PlayMsg
     = CellClicked Cell
     | CellFlagged Cell
@@ -29,6 +34,8 @@ type GoMsg
 type Msg
     = PlayMsg PlayMsg
     | GoMsg GoMsg
+    | Won GameData
+    | Lost GameData
 
 
 type Model
@@ -54,4 +61,5 @@ type alias GameData =
     , startTime : Time
     , cellMsg : Cell -> PlayMsg
     , dificulty : Dificulty
+    , mode : Mode
     }

@@ -26,10 +26,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         StartScreenMsg ss ->
-            processStartScreenMsg ss ! []
-
-        GoMsg GoRestart d ->
-            initGame d ! []
+            processStartScreenMsg ss
 
         GameMsg gm ->
             processGameMessages gm model
@@ -39,34 +36,43 @@ initGame : Game.Types.Dificulty -> Types.Model
 initGame d =
     Game <|
         case d of
-            Begginer ->
+            Game.Types.Beginner ->
                 Game.State.init 9 7 10 d
 
-            Intermediate ->
+            Game.Types.Intermediate ->
                 Game.State.init 20 12 40 d
 
-            Advanced ->
+            Game.Types.Advanced ->
                 Game.State.init 20 12 40 d
 
 
-processGameMessages : Msg -> Model -> ( Model, Cmd msg )
+processGameOverMsg : Game.Types.GoMsg -> ( Model, Cmd msg )
+processGameOverMsg (Game.Types.GoRestart d) =
+    initGame d ! []
+
+
+processGameMessages : Game.Types.Msg -> Model -> ( Model, Cmd Msg )
 processGameMessages msg model =
-    case model of
-        Game Playing gd ->
-            Game Playing gd ! []
+    case ( msg, model ) of
+        ( Game.Types.GoMsg (Game.Types.GoRestart d), _ ) ->
+            initGame d ! []
+
+        ( _, Game game ) ->
+            Game.State.update msg game
+                |> (\( g, cmd ) -> ( Game g, Cmd.map GameMsg cmd ))
 
         _ ->
             model ! []
 
 
-processStartScreenMsg : SST.Msg -> Types.Model
+processStartScreenMsg : SST.Msg -> ( Model, Cmd msg )
 processStartScreenMsg msg =
     case msg of
         SST.StartBeginner ->
-            initGame Begginer
+            initGame Game.Types.Beginner ! []
 
         SST.StartIntermediate ->
-            initGame Intermediate
+            initGame Game.Types.Intermediate ! []
 
         SST.StartAdvanced ->
-            initGame Advanced
+            initGame Game.Types.Advanced ! []
